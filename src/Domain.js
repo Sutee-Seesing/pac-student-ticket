@@ -8,6 +8,8 @@
 var StudentDomain = (function () {
   var PRICE = 99;
   var MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+  var GENERATION_MIN = 1;
+  var GENERATION_MAX = 99;
   var ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp'];
   var STATUSES = {
     WAITING_REVIEW: 'WAITING_REVIEW',
@@ -33,6 +35,7 @@ var StudentDomain = (function () {
     '22 Aug 2026 · 17:00',
     '22 Aug 2026 · 19:00'
   ];
+  var GENERIC_REJECTED_MESSAGE = 'รายการไม่ผ่านการตรวจสอบ กรุณาติดต่อเจ้าหน้าที่ PAC หากต้องการข้อมูลเพิ่มเติม';
 
   function text(value) {
     return String(value == null ? '' : value).trim();
@@ -69,6 +72,13 @@ var StudentDomain = (function () {
     return text(value).replace(/\s+/g, '');
   }
 
+  function isPositiveGeneration(value) {
+    var raw = text(value);
+    if (!/^\d+$/.test(raw)) return false;
+    var number = Number(raw);
+    return Number.isInteger(number) && number >= GENERATION_MIN && number <= GENERATION_MAX;
+  }
+
   function isEligibleStudentId(value, prefixes, length) {
     var id = normalizeStudentId(value);
     var expectedLength = Number(length || 7);
@@ -81,11 +91,24 @@ var StudentDomain = (function () {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text(value));
   }
 
+  function normalizeThaiPhone(value) {
+    var raw = text(value);
+    if (!raw || !/^[+\d\s().-]+$/.test(raw)) return null;
+    var digits = raw.replace(/\D/g, '');
+    if (/^66[689]\d{8}$/.test(digits)) digits = '0' + digits.slice(2);
+    return /^0[689]\d{8}$/.test(digits) ? digits : null;
+  }
+
+  function isValidThaiPhone(value) {
+    return Boolean(normalizeThaiPhone(value));
+  }
+
   function normalizeSubmission(payload) {
     var input = payload || {};
     return {
       full_name: text(input.full_name),
       email: text(input.email).toLowerCase(),
+      phone: normalizeThaiPhone(input.phone) || '',
       student_id: normalizeStudentId(input.student_id),
       generation: text(input.generation),
       request_id: text(input.request_id),
@@ -100,10 +123,11 @@ var StudentDomain = (function () {
     var errors = [];
     if (!data.full_name || data.full_name.length > 120) errors.push('กรุณากรอกชื่อ-นามสกุล');
     if (!isReasonableEmail(data.email) || data.email.length > 160) errors.push('กรุณากรอกอีเมลให้ถูกต้อง');
+    if (!data.phone) errors.push('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง');
     if (!isEligibleStudentId(data.student_id, config.ELIGIBLE_STUDENT_PREFIXES || DEFAULT_PREFIXES, config.STUDENT_ID_LENGTH || 7)) {
       errors.push('สิทธิ์นี้สำหรับนักศึกษารหัสขึ้นต้น 66–69 เท่านั้น กรุณาตรวจสอบรหัสนักศึกษา');
     }
-    if (!data.generation || data.generation.length > 30) errors.push('กรุณากรอกรุ่น');
+    if (!isPositiveGeneration(data.generation)) errors.push('กรุณากรอกรุ่นเป็นตัวเลขตั้งแต่ 1–99');
     if (!data.request_id || data.request_id.length < 8 || data.request_id.length > 120) errors.push('ไม่พบรหัสคำขอ กรุณาลองส่งข้อมูลอีกครั้ง');
     return { ok: errors.length === 0, errors: errors, data: data };
   }
@@ -218,6 +242,68 @@ var StudentDomain = (function () {
     };
   }
 
+  function recordTime(record) {
+    var millis = parseMillis(record && record.created_at);
+    return isFinite(millis) ? millis : 0;
+  }
+
+  function preferredLookupRecord(records) {
+    var priority = {};
+    priority[STATUSES.USED] = 1;
+    priority[STATUSES.APPROVED] = 2;
+    priority[STATUSES.WAITING_REVIEW] = 3;
+    priority[STATUSES.REJECTED] = 4;
+    return (records || []).slice().sort(function (a, b) {
+      var aPriority = priority[a.status] || 99;
+      var bPriority = priority[b.status] || 99;
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      return recordTime(b) - recordTime(a);
+    })[0] || null;
+  }
+
+  function uniqueNormalizedStudentIds(records) {
+    var seen = {};
+    (records || []).forEach(function (record) {
+      var id = normalizeStudentId(record.student_id);
+      if (id) seen[id] = true;
+    });
+    return Object.keys(seen);
+  }
+
+  function lookupRecords(records, input, prefixes, length) {
+    var raw = text(input);
+    var studentId = normalizeStudentId(raw);
+    if (isEligibleStudentId(studentId, prefixes || DEFAULT_PREFIXES, length || 7)) {
+      var studentMatches = (records || []).filter(function (record) {
+        return normalizeStudentId(record.student_id) === studentId;
+      });
+      return { kind: 'STUDENT_ID', normalized: studentId, record: preferredLookupRecord(studentMatches), records: studentMatches };
+    }
+    var phone = normalizeThaiPhone(raw);
+    if (!phone) return { kind: 'INVALID', normalized: '', record: null, records: [] };
+    var phoneMatches = (records || []).filter(function (record) {
+      return normalizeThaiPhone(record.phone) === phone;
+    });
+    var ids = uniqueNormalizedStudentIds(phoneMatches);
+    if (ids.length > 1) return { kind: 'AMBIGUOUS_PHONE', normalized: phone, record: null, records: phoneMatches };
+    return { kind: 'PHONE', normalized: phone, studentId: ids[0] || '', record: preferredLookupRecord(phoneMatches), records: phoneMatches };
+  }
+
+  function publicLookupRecord(record) {
+    var row = record || {};
+    var status = text(row.status);
+    var result = {
+      ticketId: text(row.student_ticket_code),
+      amount: Number(row.amount) || PRICE,
+      status: status,
+      statusLabel: statusLabel(status),
+      used: status === STATUSES.USED || Boolean(row.used_at),
+      assignedPerformance: status === STATUSES.USED ? text(row.assigned_performance) : ''
+    };
+    if (status === STATUSES.REJECTED) result.message = GENERIC_REJECTED_MESSAGE;
+    return result;
+  }
+
   function adminTokenMatches(expected, provided) {
     return Boolean(text(expected)) && text(expected) === text(provided);
   }
@@ -225,9 +311,10 @@ var StudentDomain = (function () {
   function matchesQuery(record, query) {
     var q = text(query).toLowerCase();
     if (!q) return true;
-    return [record.student_ticket_code, record.full_name, record.email, record.student_id].some(function (value) {
+    var phoneQuery = q.replace(/\D/g, '');
+    return [record.student_ticket_code, record.full_name, record.email, record.student_id, record.phone].some(function (value) {
       return text(value).toLowerCase().indexOf(q) >= 0;
-    });
+    }) || Boolean(phoneQuery && text(record.phone).indexOf(phoneQuery) >= 0);
   }
 
   function sortRecords(records, sort) {
@@ -245,6 +332,9 @@ var StudentDomain = (function () {
   return {
     PRICE: PRICE,
     MAX_UPLOAD_BYTES: MAX_UPLOAD_BYTES,
+    GENERATION_MIN: GENERATION_MIN,
+    GENERATION_MAX: GENERATION_MAX,
+    GENERIC_REJECTED_MESSAGE: GENERIC_REJECTED_MESSAGE,
     ALLOWED_MIME: ALLOWED_MIME.slice(),
     STATUSES: STATUSES,
     SALE_STATES: SALE_STATES,
@@ -255,7 +345,10 @@ var StudentDomain = (function () {
     normalizedPrefixes: normalizedPrefixes,
     normalizeStudentId: normalizeStudentId,
     isEligibleStudentId: isEligibleStudentId,
+    isPositiveGeneration: isPositiveGeneration,
     isReasonableEmail: isReasonableEmail,
+    normalizeThaiPhone: normalizeThaiPhone,
+    isValidThaiPhone: isValidThaiPhone,
     normalizeSubmission: normalizeSubmission,
     validateCustomerInput: validateCustomerInput,
     canSubmitForStudent: canSubmitForStudent,
@@ -273,6 +366,9 @@ var StudentDomain = (function () {
     allowedPerformances: allowedPerformances,
     isAllowedPerformance: isAllowedPerformance,
     publicRecord: publicRecord,
+    preferredLookupRecord: preferredLookupRecord,
+    lookupRecords: lookupRecords,
+    publicLookupRecord: publicLookupRecord,
     adminTokenMatches: adminTokenMatches,
     matchesQuery: matchesQuery,
     sortRecords: sortRecords

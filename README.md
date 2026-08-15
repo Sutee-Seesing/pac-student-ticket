@@ -8,13 +8,18 @@ It is **not** the normal public ticket application. It has its own standalone Ap
 
 - Price is fixed at **99 THB** for exactly one admission entitlement.
 - One active entitlement per Student ID. `WAITING_REVIEW`, `APPROVED`, and `USED` block another submission.
+- Student ID remains the entitlement uniqueness key; a duplicate phone number may warn Admin but never blocks a different Student ID.
 - A Student ID may submit again only when all previous records are `REJECTED`; the rejected history is retained.
 - Eligible IDs are seven digits beginning with `66`, `67`, `68`, or `69` by default.
+- Generation is a positive integer from `1` through `99`.
+- A required Thai mobile phone number is normalized to ten-digit local format, for example `+66 64 279 0662` becomes `0642790662`.
 - Sales are open only from **19 August 2026 09:00:00 through 23:59:59**, `Asia/Bangkok`.
 - The server clock is authoritative. A stale browser form cannot submit after the sale window closes.
 - Customers upload an RSU Connect screenshot and payment slip. Both are validated server-side and stored in private Drive folders.
 - Purchase does not include a performance selection. The venue operator records the actual performance used, if known, from the four configured options.
 - There is no quantity selector and no total student-sale capacity limit.
+- Customer status lookup accepts exactly one eligible Student ID or one exact normalized phone number. Shared phone numbers are rejected from public lookup as ambiguous.
+- Public lookup returns only Ticket ID, amount, status, used state, and performance when used; it does not return name, email, phone, notes, or file identifiers.
 
 ## Repository layout
 

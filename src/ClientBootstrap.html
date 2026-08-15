@@ -46,6 +46,21 @@ var StudentClient = (function () {
     return value >= 1024 * 1024 ? (value / (1024 * 1024)).toFixed(1) + ' MB' : Math.ceil(value / 1024) + ' KB';
   }
 
+  function isPositiveGeneration(value) {
+    var raw = text(value).trim();
+    if (!/^\d+$/.test(raw)) return false;
+    var number = Number(raw);
+    return Number.isInteger(number) && number >= 1 && number <= 99;
+  }
+
+  function normalizeThaiPhone(value) {
+    var raw = text(value).trim();
+    if (!raw || !/^[+\d\s().-]+$/.test(raw)) return null;
+    var digits = raw.replace(/\D/g, '');
+    if (/^66[689]\d{8}$/.test(digits)) digits = '0' + digits.slice(2);
+    return /^0[689]\d{8}$/.test(digits) ? digits : null;
+  }
+
   function readFile(file) {
     return new Promise(function (resolve, reject) {
       var reader = new FileReader();
@@ -64,6 +79,8 @@ var StudentClient = (function () {
     saleBanner: saleBanner,
     newRequestId: newRequestId,
     fileSizeLabel: fileSizeLabel,
+    isPositiveGeneration: isPositiveGeneration,
+    normalizeThaiPhone: normalizeThaiPhone,
     readFile: readFile
   };
 }());

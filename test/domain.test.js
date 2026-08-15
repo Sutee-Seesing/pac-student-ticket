@@ -65,10 +65,11 @@ test('a request_id already recorded is found for idempotent retry', () => {
 
 test('fixed pricing ignores client amount, quantity, and performance fields', () => {
   const normalized = Domain.normalizeSubmission({
-    full_name: 'A Student', email: 'a@example.com', student_id: '6605810', generation: '19', request_id: 'request-12345678',
+    full_name: 'A Student', email: 'a@example.com', phone: '064-279-0662', student_id: '6605810', generation: '19', request_id: 'request-12345678',
     amount: 1, quantity: 99, performance: '21 Aug 2026 · 17:00'
   });
   assert.equal(normalized.amount, 99);
+  assert.equal(normalized.phone, '0642790662');
   assert.equal(normalized.status, 'WAITING_REVIEW');
   assert.equal('quantity' in normalized, false);
   assert.equal('performance' in normalized, false);
@@ -132,10 +133,110 @@ test('Admin token comparison requires the configured token', () => {
   assert.equal(Domain.adminTokenMatches('', 'anything'), false);
 });
 
-test('customer input validates email and fixed student rules', () => {
-  const result = Domain.validateCustomerInput({ full_name: 'A Student', email: 'a@example.com', student_id: '6605810', generation: '19', request_id: 'request-12345678' }, settings);
+test('customer input validates email, phone, generation, and fixed student rules', () => {
+  const result = Domain.validateCustomerInput({ full_name: 'A Student', email: 'a@example.com', phone: '0642790662', student_id: '6605810', generation: '19', request_id: 'request-12345678' }, settings);
   assert.equal(result.ok, true);
-  assert.equal(Domain.validateCustomerInput({ full_name: 'A Student', email: 'not-an-email', student_id: '6605810', generation: '19', request_id: 'request-12345678' }, settings).ok, false);
+  assert.equal(Domain.validateCustomerInput({ full_name: 'A Student', email: 'not-an-email', phone: '0642790662', student_id: '6605810', generation: '19', request_id: 'request-12345678' }, settings).ok, false);
+});
+
+test('generation 19 is valid', () => assert.equal(Domain.isPositiveGeneration('19'), true));
+test('generation 1 is valid', () => assert.equal(Domain.isPositiveGeneration('1'), true));
+test('generation 99 is valid', () => assert.equal(Domain.isPositiveGeneration('99'), true));
+test('generation 0 is invalid', () => assert.equal(Domain.isPositiveGeneration('0'), false));
+test('negative generation is invalid', () => assert.equal(Domain.isPositiveGeneration('-1'), false));
+test('decimal generation is invalid', () => assert.equal(Domain.isPositiveGeneration('1.5'), false));
+test('text generation is invalid', () => assert.equal(Domain.isPositiveGeneration('abc'), false));
+test('empty generation is invalid', () => assert.equal(Domain.isPositiveGeneration(''), false));
+
+test('valid Thai phone is accepted and keeps its leading zero', () => {
+  assert.equal(Domain.normalizeThaiPhone('0642790662'), '0642790662');
+  assert.equal(Domain.normalizeThaiPhone('064-279-0662'), '0642790662');
+});
+
+test('international Thai phone normalizes to local format', () => {
+  assert.equal(Domain.normalizeThaiPhone('+66 64 279 0662'), '0642790662');
+});
+
+test('invalid Thai phone is rejected', () => {
+  assert.equal(Domain.normalizeThaiPhone('0742790662'), null);
+  assert.equal(Domain.normalizeThaiPhone('064279066'), null);
+  assert.equal(Domain.normalizeThaiPhone('phone-0642790662'), null);
+});
+
+test('new identifier values remain text semantics', () => {
+  const normalized = Domain.normalizeSubmission({ phone: '0642790662', student_id: '6605810', generation: '01' });
+  assert.equal(normalized.phone, '0642790662');
+  assert.equal(normalized.student_id, '6605810');
+  assert.equal(normalized.generation, '01');
+  assert.equal(Domain.safeSheetValue(normalized.phone), '0642790662');
+  assert.equal(Domain.safeSheetValue(normalized.student_id), '6605810');
+  assert.equal(Domain.safeSheetValue(normalized.generation), '01');
+});
+
+test('Student ID lookup prefers active entitlement over older rejected history', () => {
+  const rejected = { student_id: '6605810', status: 'REJECTED', created_at: '2026-08-19T10:00:00+07:00', student_ticket_code: 'PAC-STU-0001', amount: 99 };
+  const waiting = { student_id: '6605810', status: 'WAITING_REVIEW', created_at: '2026-08-19T11:00:00+07:00', student_ticket_code: 'PAC-STU-0002', amount: 99 };
+  const result = Domain.lookupRecords([rejected, waiting], '6605810', settings.ELIGIBLE_STUDENT_PREFIXES, 7);
+  assert.equal(result.record, waiting);
+});
+
+test('Student ID lookup prioritizes USED, then APPROVED, then WAITING_REVIEW', () => {
+  const records = [
+    { student_id: '6605810', status: 'WAITING_REVIEW', created_at: '2026-08-19T12:00:00+07:00' },
+    { student_id: '6605810', status: 'APPROVED', created_at: '2026-08-19T11:00:00+07:00' },
+    { student_id: '6605810', status: 'USED', created_at: '2026-08-19T10:00:00+07:00' }
+  ];
+  assert.equal(Domain.lookupRecords(records, '6605810', settings.ELIGIBLE_STUDENT_PREFIXES, 7).record, records[2]);
+});
+
+test('only rejected Student ID history returns the latest rejected record', () => {
+  const oldRejected = { student_id: '6605810', status: 'REJECTED', created_at: '2026-08-19T10:00:00+07:00', student_ticket_code: 'PAC-STU-0001' };
+  const latestRejected = { student_id: '6605810', status: 'REJECTED', created_at: '2026-08-19T12:00:00+07:00', student_ticket_code: 'PAC-STU-0002' };
+  assert.equal(Domain.lookupRecords([oldRejected, latestRejected], '6605810', settings.ELIGIBLE_STUDENT_PREFIXES, 7).record, latestRejected);
+});
+
+test('unknown eligible Student ID returns no lookup record', () => {
+  const result = Domain.lookupRecords([], '6605810', settings.ELIGIBLE_STUDENT_PREFIXES, 7);
+  assert.equal(result.kind, 'STUDENT_ID');
+  assert.equal(result.record, null);
+});
+
+test('exact phone lookup works and applies the same history priority', () => {
+  const rejected = { student_id: '6605810', phone: '0642790662', status: 'REJECTED', created_at: '2026-08-19T10:00:00+07:00' };
+  const approved = { student_id: '6605810', phone: '064-279-0662', status: 'APPROVED', created_at: '2026-08-19T11:00:00+07:00' };
+  const result = Domain.lookupRecords([rejected, approved], '+66 64 279 0662', settings.ELIGIBLE_STUDENT_PREFIXES, 7);
+  assert.equal(result.kind, 'PHONE');
+  assert.equal(result.record, approved);
+});
+
+test('shared phone across Student IDs returns an ambiguous lookup result', () => {
+  const result = Domain.lookupRecords([
+    { student_id: '6605810', phone: '0642790662', status: 'APPROVED' },
+    { student_id: '6705810', phone: '0642790662', status: 'APPROVED' }
+  ], '064-279-0662', settings.ELIGIBLE_STUDENT_PREFIXES, 7);
+  assert.equal(result.kind, 'AMBIGUOUS_PHONE');
+  assert.equal(result.record, null);
+});
+
+test('phone duplicates do not block a different Student ID purchase', () => {
+  const result = Domain.canSubmitForStudent([{ student_id: '6605810', phone: '0642790662', status: 'APPROVED' }], '6705810');
+  assert.equal(result.allowed, true);
+});
+
+test('public lookup response is minimal and never exposes personal or internal metadata', () => {
+  const response = Domain.publicLookupRecord({
+    student_ticket_code: 'PAC-STU-0001', full_name: 'A Student', email: 'a@example.com', phone: '0642790662', amount: 99,
+    status: 'REJECTED', admin_note: 'private reason', reviewer: 'staff', internal_id: 'uuid', rsu_connect_file_id: 'drive-1', payment_slip_file_id: 'drive-2'
+  });
+  assert.equal(response.ticketId, 'PAC-STU-0001');
+  assert.equal(response.message, Domain.GENERIC_REJECTED_MESSAGE);
+  assert.equal('name' in response, false);
+  assert.equal('full_name' in response, false);
+  assert.equal('email' in response, false);
+  assert.equal('phone' in response, false);
+  assert.equal(JSON.stringify(response).includes('drive-1'), false);
+  assert.equal(JSON.stringify(response).includes('private reason'), false);
+  assert.equal(JSON.stringify(response).includes('staff'), false);
 });
 
 test('venue performance options are limited to the four configured values', () => {
@@ -146,9 +247,10 @@ test('venue performance options are limited to the four configured values', () =
 });
 
 test('partial Admin search includes email, name, and Student ID fields', () => {
-  const record = { student_ticket_code: 'PAC-STU-0001', full_name: 'สมชาย ใจดี', email: 'somchai@example.com', student_id: '6605810' };
+  const record = { student_ticket_code: 'PAC-STU-0001', full_name: 'สมชาย ใจดี', email: 'somchai@example.com', phone: '0642790662', student_id: '6605810' };
   assert.equal(Domain.matchesQuery(record, 'somchai@'), true);
   assert.equal(Domain.matchesQuery(record, 'ใจดี'), true);
   assert.equal(Domain.matchesQuery(record, '6605'), true);
+  assert.equal(Domain.matchesQuery(record, '064-279-0662'), true);
   assert.equal(Domain.matchesQuery(record, 'missing'), false);
 });

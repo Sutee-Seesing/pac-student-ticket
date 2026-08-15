@@ -14,7 +14,7 @@ var CONFIG = {
   },
   MAX_UPLOAD_BYTES: 5 * 1024 * 1024,
   ALLOWED_MIME: ['image/jpeg', 'image/png', 'image/webp'],
-  BUILD_ID: 'm1-student-entitlement'
+  BUILD_ID: 'm1.1-form-lookup-cleanup'
 };
 
 var HEADERS = {
@@ -38,7 +38,8 @@ var HEADERS = {
     'assigned_performance',
     'used_at',
     'used_by',
-    'request_id'
+    'request_id',
+    'phone'
   ],
   AuditLog: ['timestamp', 'student_ticket_code', 'previous_status', 'new_status', 'action', 'actor', 'metadata']
 };
@@ -112,10 +113,11 @@ function setup() {
   ensureHeader_(ss, CONFIG.SHEETS.AUDIT, HEADERS.AuditLog);
 
   var settingsSheet = sheet_(CONFIG.SHEETS.SETTINGS);
+  ensureSettingsValueTextFormat_(settingsSheet);
   var settings = getSettings_();
   Object.keys(DEFAULT_SETTINGS).forEach(function (key) {
     if (!Object.prototype.hasOwnProperty.call(settings, key)) {
-      settingsSheet.appendRow([StudentDomain.safeSheetValue(key), StudentDomain.safeSheetValue(DEFAULT_SETTINGS[key])]);
+      appendSetting_(settingsSheet, key, DEFAULT_SETTINGS[key]);
     }
   });
 
@@ -124,13 +126,13 @@ function setup() {
   if (!setting_(settings, 'RSU_CONNECT_FOLDER_ID', '')) {
     var rsuFolder = DriveApp.createFolder('PAC Student Ticket · RSU Connect');
     makePrivate_(rsuFolder);
-    settingsSheet.appendRow(['RSU_CONNECT_FOLDER_ID', StudentDomain.safeSheetValue(rsuFolder.getId())]);
+    appendSetting_(settingsSheet, 'RSU_CONNECT_FOLDER_ID', rsuFolder.getId());
     createdFolders.push('RSU Connect');
   }
   if (!setting_(settings, 'PAYMENT_SLIP_FOLDER_ID', '')) {
     var paymentFolder = DriveApp.createFolder('PAC Student Ticket · Payment Slips');
     makePrivate_(paymentFolder);
-    settingsSheet.appendRow(['PAYMENT_SLIP_FOLDER_ID', StudentDomain.safeSheetValue(paymentFolder.getId())]);
+    appendSetting_(settingsSheet, 'PAYMENT_SLIP_FOLDER_ID', paymentFolder.getId());
     createdFolders.push('Payment Slips');
   }
   SpreadsheetApp.flush();
@@ -187,6 +189,7 @@ function submitStudentEntitlement(input) {
       updated_at: now,
       full_name: validation.data.full_name,
       email: validation.data.email,
+      phone: validation.data.phone,
       student_id: validation.data.student_id,
       generation: validation.data.generation,
       rsu_connect_file_id: rsuFileId,
@@ -215,17 +218,23 @@ function submitStudentEntitlement(input) {
   }
 }
 
-/** Customer-safe exact lookup; both identifiers are required. */
+/** Customer-safe lookup by one exact Student ID or normalized phone number. */
 function lookupStudentEntitlementJson(input) {
-  var payload = input || {};
-  var code = String(payload.student_ticket_code || payload.ticketId || '').trim().toUpperCase();
-  var studentId = StudentDomain.normalizeStudentId(payload.student_id || payload.studentId || '');
-  if (!code || !studentId) return JSON.stringify({ ok: false, message: 'กรุณากรอกรหัสสิทธิ์และรหัสนักศึกษา' });
-  var record = studentRows_().filter(function (row) {
-    return String(row.student_ticket_code || '').trim().toUpperCase() === code && StudentDomain.normalizeStudentId(row.student_id) === studentId;
-  })[0];
-  if (!record) return JSON.stringify({ ok: false, message: 'ไม่พบข้อมูล กรุณาตรวจสอบรหัสสิทธิ์และรหัสนักศึกษา' });
-  return JSON.stringify({ ok: true, result: StudentDomain.publicRecord(record) });
+  var settings = getSettings_();
+  var payload = input == null ? '' : input;
+  var lookup = typeof payload === 'string' ? payload : (payload.lookup || payload.value || payload.student_id || payload.phone || '');
+  var result = StudentDomain.lookupRecords(
+    studentRows_(),
+    lookup,
+    setting_(settings, 'ELIGIBLE_STUDENT_PREFIXES', DEFAULT_SETTINGS.ELIGIBLE_STUDENT_PREFIXES),
+    setting_(settings, 'STUDENT_ID_LENGTH', DEFAULT_SETTINGS.STUDENT_ID_LENGTH)
+  );
+  if (result.kind === 'INVALID') return JSON.stringify({ ok: false, message: 'กรุณากรอกรหัสนักศึกษาหรือเบอร์โทรศัพท์ให้ถูกต้อง' });
+  if (result.kind === 'AMBIGUOUS_PHONE') return JSON.stringify({ ok: false, message: 'พบมากกว่า 1 รายการสำหรับเบอร์โทรนี้ กรุณาตรวจสอบด้วยรหัสนักศึกษา' });
+  if (!result.record) {
+    return JSON.stringify({ ok: false, message: result.kind === 'STUDENT_ID' ? 'ไม่พบข้อมูลสิทธิ์สำหรับรหัสนักศึกษานี้' : 'ไม่พบข้อมูลสิทธิ์สำหรับเบอร์โทรศัพท์นี้' });
+  }
+  return JSON.stringify({ ok: true, result: StudentDomain.publicLookupRecord(result.record) });
 }
 
 /** Admin data endpoint. Sensitive rows are only read after token validation. */
@@ -250,8 +259,9 @@ function getAdminBookingDetailJson(token, ticketCode) {
   if (!record) throw new Error('ไม่พบรายการ');
   var all = studentRows_();
   var duplicateEmail = emailCount_(all, record.email) > 1;
+  var duplicatePhone = phoneCount_(all, record.phone) > 1;
   var timezone = setting_(getSettings_(), 'TIMEZONE', DEFAULT_SETTINGS.TIMEZONE);
-  return JSON.stringify({ ok: true, booking: adminRow_(record, all, duplicateEmail, timezone) });
+  return JSON.stringify({ ok: true, booking: adminRow_(record, all, duplicateEmail, duplicatePhone, timezone) });
 }
 
 /** Return image bytes as a data URL to an authorized admin; never return IDs. */
@@ -344,13 +354,14 @@ function getAdminCsvJson(token, filters) {
   var settings = getSettings_();
   var timezone = setting_(settings, 'TIMEZONE', DEFAULT_SETTINGS.TIMEZONE);
   var output = [
-    ['Ticket ID', 'ชื่อ-นามสกุล', 'Email', 'รหัสนักศึกษา', 'รุ่น', 'จำนวนเงิน', 'สถานะ', 'วันที่ส่ง', 'วันที่ตรวจ', 'ผู้ตรวจ', 'รอบที่ใช้สิทธิ์', 'วันที่ใช้สิทธิ์', 'หมายเหตุ']
+    ['Ticket ID', 'ชื่อ-นามสกุล', 'Email', 'เบอร์โทรศัพท์', 'รหัสนักศึกษา', 'รุ่น', 'จำนวนเงิน', 'สถานะ', 'วันที่ส่ง', 'วันที่ตรวจ', 'ผู้ตรวจ', 'รอบที่ใช้สิทธิ์', 'วันที่ใช้สิทธิ์', 'หมายเหตุ']
   ];
   rows.forEach(function (record) {
     output.push([
       record.student_ticket_code,
       record.full_name,
       record.email,
+      record.phone,
       record.student_id,
       record.generation,
       Number(record.amount) || StudentDomain.PRICE,
@@ -379,6 +390,7 @@ function sheet_(name) {
 }
 
 function getSettings_() {
+  ensureSettingsValueTextFormat_(sheet_(CONFIG.SHEETS.SETTINGS));
   var rows = rowsFromSheet_(CONFIG.SHEETS.SETTINGS);
   var settings = {};
   rows.forEach(function (row) { settings[String(row.key)] = String(row.value == null ? '' : row.value); });
@@ -404,34 +416,74 @@ function rowsFromSheet_(name) {
 }
 
 function studentRows_() {
+  ensureStudentBookingsHeaders_();
   return rowsFromSheet_(CONFIG.SHEETS.BOOKINGS);
 }
 
 function ensureHeader_(spreadsheet, name, expected) {
   var sheet = spreadsheet.getSheetByName(name) || spreadsheet.insertSheet(name);
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(expected.map(StudentDomain.safeSheetValue));
+    sheet.getRange(1, 1, 1, expected.length).setValues([expected.map(StudentDomain.safeSheetValue)]);
     return;
   }
-  var actual = sheet.getRange(1, 1, 1, expected.length).getDisplayValues()[0];
-  if (actual.join('\u0001') !== expected.join('\u0001')) {
-    throw new Error('ชีต ' + name + ' มีหัวตารางไม่ตรงกับระบบนักศึกษา');
+  var width = Math.max(sheet.getLastColumn(), expected.length);
+  var actual = sheet.getRange(1, 1, 1, width).getDisplayValues()[0];
+  for (var i = 0; i < expected.length; i++) {
+    if (actual[i] && actual[i] !== expected[i]) throw new Error('ชีต ' + name + ' มีหัวตารางไม่ตรงกับระบบนักศึกษา');
+    if (!actual[i]) sheet.getRange(1, i + 1).setValue(expected[i]);
   }
+}
+
+function ensureStudentBookingsHeaders_() {
+  var spreadsheet = spreadsheet_();
+  var sheet = spreadsheet.getSheetByName(CONFIG.SHEETS.BOOKINGS);
+  if (!sheet) throw new Error('ไม่พบชีต ' + CONFIG.SHEETS.BOOKINGS + ' กรุณาให้เจ้าของระบบรัน setup() หนึ่งครั้ง');
+  ensureHeader_(spreadsheet, CONFIG.SHEETS.BOOKINGS, HEADERS.StudentBookings);
+}
+
+function ensureSettingsValueTextFormat_(sheet) {
+  var rowCount = Math.max(0, sheet.getLastRow() - 1);
+  if (rowCount) sheet.getRange(2, 2, rowCount, 1).setNumberFormat('@');
+}
+
+function appendSetting_(sheet, key, value) {
+  var rowNumber = sheet.getLastRow() + 1;
+  sheet.getRange(rowNumber, 1, 1, 2).setNumberFormat('@');
+  sheet.getRange(rowNumber, 1, 1, 2).setValues([[
+    StudentDomain.safeSheetValue(key),
+    StudentDomain.safeSheetValue(value)
+  ]]);
+}
+
+function identifierHeaders_() {
+  return ['student_ticket_code', 'student_id', 'generation', 'phone'];
 }
 
 function appendStudentRecord_(record) {
   var values = HEADERS.StudentBookings.map(function (header) {
     return StudentDomain.safeSheetValue(record[header]);
   });
-  sheet_(CONFIG.SHEETS.BOOKINGS).appendRow(values);
+  var sheet = sheet_(CONFIG.SHEETS.BOOKINGS);
+  ensureStudentBookingsHeaders_();
+  var rowNumber = sheet.getLastRow() + 1;
+  var headerRow = sheet.getRange(1, 1, 1, HEADERS.StudentBookings.length).getValues()[0];
+  identifierHeaders_().forEach(function (header) {
+    var index = headerRow.indexOf(header);
+    if (index >= 0) sheet.getRange(rowNumber, index + 1).setNumberFormat('@');
+  });
+  sheet.getRange(rowNumber, 1, 1, HEADERS.StudentBookings.length).setValues([values]);
 }
 
 function updateStudentRecord_(rowNumber, fields) {
   var sheet = sheet_(CONFIG.SHEETS.BOOKINGS);
-  var headerRow = sheet.getRange(1, 1, 1, HEADERS.StudentBookings.length).getValues()[0];
+  ensureStudentBookingsHeaders_();
+  var headerRow = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), HEADERS.StudentBookings.length)).getValues()[0];
   Object.keys(fields).forEach(function (key) {
     var index = headerRow.indexOf(key);
-    if (index >= 0) sheet.getRange(rowNumber, index + 1).setValue(StudentDomain.safeSheetValue(fields[key]));
+    if (index >= 0) {
+      if (identifierHeaders_().indexOf(key) >= 0) sheet.getRange(rowNumber, index + 1).setNumberFormat('@');
+      sheet.getRange(rowNumber, index + 1).setValue(StudentDomain.safeSheetValue(fields[key]));
+    }
   });
 }
 
@@ -585,15 +637,16 @@ function metrics_(rows) {
 function adminRows_(rows, all) {
   var timezone = setting_(getSettings_(), 'TIMEZONE', DEFAULT_SETTINGS.TIMEZONE);
   return (rows || []).map(function (record) {
-    return adminRow_(record, all, emailCount_(all, record.email) > 1, timezone);
+    return adminRow_(record, all, emailCount_(all, record.email) > 1, phoneCount_(all, record.phone) > 1, timezone);
   });
 }
 
-function adminRow_(record, all, duplicateEmail, timezone) {
+function adminRow_(record, all, duplicateEmail, duplicatePhone, timezone) {
   return {
     ticketId: String(record.student_ticket_code || ''),
     fullName: String(record.full_name || ''),
     email: String(record.email || ''),
+    phone: String(record.phone || ''),
     studentId: String(record.student_id || ''),
     generation: String(record.generation || ''),
     amount: Number(record.amount) || StudentDomain.PRICE,
@@ -608,14 +661,30 @@ function adminRow_(record, all, duplicateEmail, timezone) {
     usedBy: String(record.used_by || ''),
     hasRsuConnect: Boolean(record.rsu_connect_file_id),
     hasPaymentSlip: Boolean(record.payment_slip_file_id),
-    duplicateEmail: Boolean(duplicateEmail)
+    duplicateEmail: Boolean(duplicateEmail),
+    duplicatePhone: Boolean(duplicatePhone)
   };
 }
 
 function emailCount_(rows, email) {
   var value = String(email || '').trim().toLowerCase();
   if (!value) return 0;
-  return (rows || []).filter(function (record) { return String(record.email || '').trim().toLowerCase() === value; }).length;
+  return distinctStudentCount_(rows, function (record) { return String(record.email || '').trim().toLowerCase() === value; });
+}
+
+function phoneCount_(rows, phone) {
+  var value = StudentDomain.normalizeThaiPhone(phone);
+  if (!value) return 0;
+  return distinctStudentCount_(rows, function (record) { return StudentDomain.normalizeThaiPhone(record.phone) === value; });
+}
+
+function distinctStudentCount_(rows, predicate) {
+  var seen = {};
+  (rows || []).filter(predicate).forEach(function (record) {
+    var studentId = StudentDomain.normalizeStudentId(record.student_id) || String(record.rowNumber || 'unknown');
+    seen[studentId] = true;
+  });
+  return Object.keys(seen).length;
 }
 
 function customerSuccess_(record) {

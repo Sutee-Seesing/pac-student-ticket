@@ -54,16 +54,11 @@
     .section-title { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; }
     .section-title h2 { margin: 0; font-size: clamp(23px, 5vw, 31px); color: #651021; }
     .section-title span { color: var(--muted); font-size: 13px; }
-    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 2px 0 22px; padding: 0; list-style: none; }
-    .steps li { color: #947a76; border-top: 3px solid #ead8ce; padding-top: 8px; font-size: 12px; font-weight: 700; }
-    .steps li.active { color: var(--red); border-color: var(--red); }
-    .steps b { display: inline-grid; place-items: center; width: 23px; height: 23px; margin-right: 4px; border-radius: 50%; background: #f2e2d8; }
-    .steps .active b { color: #fff; background: var(--red); }
     .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
     .field { display: flex; flex-direction: column; gap: 7px; }
     .field.full { grid-column: 1 / -1; }
     label { font-weight: 800; color: #4c292e; }
-    input[type="text"], input[type="email"], input[type="number"], input[type="password"], input[type="file"] { width: 100%; border: 1px solid #d8bdb2; border-radius: 10px; background: #fffdf9; color: var(--ink); padding: 12px 13px; min-height: 47px; outline: none; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="password"], input[type="file"] { width: 100%; border: 1px solid #d8bdb2; border-radius: 10px; background: #fffdf9; color: var(--ink); padding: 12px 13px; min-height: 47px; outline: none; }
     input:focus { border-color: var(--red); box-shadow: 0 0 0 3px #9f19301a; }
     input[type="file"] { padding: 9px; }
     input[type="file"]::file-selector-button { margin-right: 9px; border: 0; border-radius: 7px; padding: 8px 10px; color: #fff; background: var(--red); font-weight: 700; cursor: pointer; }
@@ -86,8 +81,6 @@
     .disclaimer { border-left: 4px solid var(--gold); padding: 12px 14px; background: #fff5da; color: #68461d; border-radius: 0 10px 10px 0; font-size: 14px; }
     .performance-note { border: 1px solid #dec1b3; border-radius: 13px; padding: 16px; background: linear-gradient(135deg, #f7e8dc, #fffaf2); }
     .performance-note strong { display: block; color: #681321; margin-bottom: 5px; }
-    .checkline { display: flex; align-items: flex-start; gap: 10px; margin: 12px 0; font-size: 14px; }
-    .checkline input { flex: 0 0 auto; width: 20px; height: 20px; margin-top: 2px; accent-color: var(--red); }
     .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
     .error, .success, .lookup-result { padding: 13px 15px; border-radius: 10px; margin: 14px 0 0; }
     .error { background: #fbe5e7; color: #8e2336; border: 1px solid #ecc4c9; }
@@ -114,8 +107,6 @@
       .price-stamp { justify-self: start; }
       .grid, .payment-layout { grid-template-columns: 1fr; }
       .qr-box img { max-width: 240px; }
-      .steps li { font-size: 11px; }
-      .steps b { display: block; margin-bottom: 3px; }
       .form-actions { flex-direction: column-reverse; }
       .form-actions button { width: 100%; }
       .lookup-result dl { grid-template-columns: 1fr; gap: 2px; }
@@ -123,8 +114,6 @@
     }
     @media (max-width: 390px) {
       .card { padding: 16px 14px; }
-      .steps { gap: 4px; }
-      .steps li { letter-spacing: -.02em; }
     }
   </style>
 </head>
@@ -156,22 +145,18 @@
 
       <section id="formCard" class="card">
         <div class="section-title"><h2>ส่งข้อมูลขอใช้สิทธิ์</h2><span>1 คน · 1 สิทธิ์ · 99 บาท</span></div>
-        <ol class="steps" aria-label="ขั้นตอนการส่งข้อมูล">
-          <li class="active"><b>1</b>ข้อมูลผู้ซื้อ</li>
-          <li class="active"><b>2</b>ยืนยันนักศึกษา</li>
-          <li class="active"><b>3</b>ชำระเงิน</li>
-          <li><b>4</b>ส่งสำเร็จ</li>
-        </ol>
         <form id="studentForm" novalidate>
+          <div class="section-title"><h2>1. ข้อมูลผู้ซื้อ</h2><span>กรอกข้อมูลสำหรับการตรวจสอบ</span></div>
           <div class="grid">
             <div class="field full"><label for="fullName">ชื่อ-นามสกุล</label><input id="fullName" name="full_name" type="text" maxlength="120" autocomplete="name" required placeholder="กรอกชื่อและนามสกุล"></div>
             <div class="field"><label for="email">อีเมล</label><input id="email" name="email" type="email" maxlength="160" autocomplete="email" required placeholder="name@example.com"></div>
+            <div class="field"><label for="phone">เบอร์โทรศัพท์</label><input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="15" autocomplete="tel" required placeholder="เช่น 0642790662"><p class="hint">รับรูปแบบ 0642790662, 064-279-0662 หรือ +66 64 279 0662</p></div>
             <div class="field"><label for="studentId">รหัสนักศึกษา</label><input id="studentId" name="student_id" type="text" inputmode="numeric" maxlength="7" autocomplete="off" required placeholder="เช่น 6605810"><p id="studentIdHint" class="hint">สำหรับนักศึกษารหัสขึ้นต้น <strong>66–69</strong> เท่านั้น</p></div>
-            <div class="field"><label for="generation">รุ่น</label><input id="generation" name="generation" type="text" maxlength="30" required placeholder="เช่น 19"></div>
+            <div class="field"><label for="generation">รุ่น</label><input id="generation" name="generation" type="text" inputmode="numeric" pattern="[0-9]{1,2}" required placeholder="เช่น 19"><p class="hint">กรอกตัวเลขตั้งแต่ 1–99</p></div>
           </div>
 
           <hr>
-          <div class="section-title"><h2>ยืนยันสถานะนักศึกษา</h2><span>ขั้นตอนที่ 2</span></div>
+          <div class="section-title"><h2>2. ยืนยันสถานะนักศึกษา</h2><span>แนบหลักฐานจาก RSU Connect</span></div>
           <div class="upload-card">
             <h3>หลักฐานยืนยันสถานะนักศึกษา</h3>
             <p class="hint">กรุณาอัปโหลดภาพหน้าโปรไฟล์ RSU Connect ที่เห็นชื่อ-นามสกุล คณะ/สาขา และข้อมูลนักศึกษาอย่างชัดเจน</p>
@@ -181,7 +166,7 @@
           </div>
 
           <hr>
-          <div class="section-title"><h2>ชำระเงิน</h2><span>ขั้นตอนที่ 3 · ยอดชำระ 99 บาท</span></div>
+          <div class="section-title"><h2>3. ชำระเงิน</h2><span>ยอดชำระ 99 บาท</span></div>
           <div class="payment-layout">
             <div class="bank-panel">
               <div class="bank-row"><span>ธนาคาร</span><strong id="bankName">-</strong></div>
@@ -199,16 +184,14 @@
             <p class="hint">รองรับ JPEG, PNG, WEBP ขนาดไม่เกิน 5 MB</p>
           </div>
           <div class="disclaimer">การชำระเงินยังไม่ถือว่าได้รับสิทธิ์ จนกว่าเจ้าหน้าที่จะตรวจสอบข้อมูลนักศึกษาและสลิปการชำระเงินเรียบร้อยแล้ว</div>
-
-          <label class="checkline"><input id="confirmStudent" type="checkbox" required><span>ข้าพเจ้ายืนยันว่าเป็นนักศึกษา PAC และข้อมูลที่กรอกตรงกับหลักฐาน RSU Connect</span></label>
-          <label class="checkline"><input id="confirmPayment" type="checkbox" required><span>ข้าพเจ้าชำระเงิน 99 บาท และเข้าใจว่าสิทธิ์นี้ไม่สามารถเลือกรอบการแสดงล่วงหน้าได้</span></label>
+          <p class="hint">เมื่อส่งข้อมูล เจ้าหน้าที่จะตรวจสอบสถานะนักศึกษาและสลิปก่อนอนุมัติสิทธิ์</p>
           <div id="formError" class="error hidden" role="alert"></div>
           <div class="form-actions"><button id="submitButton" type="submit" class="primary">ส่งข้อมูลขอใช้สิทธิ์ 99 บาท</button></div>
         </form>
       </section>
 
       <section id="successCard" class="card hidden" aria-live="polite">
-        <div class="section-title"><h2>รับข้อมูลแล้ว</h2><span>ขั้นตอนที่ 4</span></div>
+        <div class="section-title"><h2>รับข้อมูลแล้ว</h2><span>ส่งข้อมูลสำเร็จ</span></div>
         <p id="successExplanation">เจ้าหน้าที่กำลังตรวจสอบข้อมูล RSU Connect และสลิปการชำระเงิน</p>
         <div class="success-ticket"><small>รหัสสิทธิ์ของคุณ</small><strong id="successTicket">PAC-STU-0001</strong><span id="successStatus" class="status-pill">รอตรวจสอบ</span></div>
         <p>บัตรประเภทนี้ไม่เลือกรอบล่วงหน้า กรุณาติดต่อเจ้าหน้าที่หน้างานเพื่อเลือกรอบการแสดง</p>
@@ -216,10 +199,9 @@
       </section>
 
       <section class="card lookup">
-        <div class="section-title"><h2>ตรวจสอบสถานะสิทธิ์</h2><span>ใช้รหัสสิทธิ์และรหัสนักศึกษา</span></div>
+        <div class="section-title"><h2>ตรวจสอบสถานะสิทธิ์</h2><span>ใช้รหัสนักศึกษาหรือเบอร์โทรศัพท์</span></div>
         <div class="grid">
-          <div class="field"><label for="lookupTicket">Student Ticket ID</label><input id="lookupTicket" type="text" placeholder="เช่น PAC-STU-0001" autocomplete="off"></div>
-          <div class="field"><label for="lookupStudentId">รหัสนักศึกษา</label><input id="lookupStudentId" type="text" inputmode="numeric" placeholder="เช่น 6605810" autocomplete="off"></div>
+          <div class="field full"><label for="lookupInput">รหัสนักศึกษาหรือเบอร์โทรศัพท์</label><input id="lookupInput" type="text" inputmode="numeric" placeholder="เช่น 6605810 หรือ 0642790662" autocomplete="off"></div>
         </div>
         <div class="form-actions"><button id="lookupButton" type="button" class="primary">ตรวจสอบสถานะ</button></div>
         <div id="lookupResult" class="lookup-result hidden"></div>
@@ -293,11 +275,16 @@
         clearError($('formError'));
         if (!config || config.saleState !== StudentClient.SALE_STATES.OPEN) { showError($('formError'), StudentClient.saleBanner(config || { saleState: 'CLOSED_ENDED' }).title); return; }
         var form = $('studentForm');
-        if (!form.checkValidity()) { form.reportValidity(); return; }
         var studentId = $('studentId').value.trim().replace(/\s+/g, '');
         var prefixes = config.eligiblePrefixes || ['66', '67', '68', '69'];
         var expectedLength = Number(config.studentIdLength) || 7;
         if (!new RegExp('^\\d{' + expectedLength + '}$').test(studentId) || !prefixes.some(function (prefix) { return studentId.indexOf(String(prefix)) === 0; })) { showError($('formError'), 'สิทธิ์นี้สำหรับนักศึกษารหัสขึ้นต้น ' + prefixes.join('–') + ' เท่านั้น กรุณาตรวจสอบรหัสนักศึกษา'); return; }
+        var generation = $('generation').value.trim();
+        if (!StudentClient.isPositiveGeneration(generation)) { showError($('formError'), 'กรุณากรอกรุ่นเป็นตัวเลขตั้งแต่ 1–99'); return; }
+        var phone = StudentClient.normalizeThaiPhone($('phone').value);
+        if (!phone) { showError($('formError'), 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง'); return; }
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        $('phone').value = phone;
         var rsu = $('rsuFile').files && $('rsuFile').files[0];
         var slip = $('slipFile').files && $('slipFile').files[0];
         try { validateFile(rsu, 'หลักฐานยืนยันสถานะนักศึกษา'); validateFile(slip, 'สลิปการชำระเงิน'); } catch (error) { showError($('formError'), errorText(error)); return; }
@@ -309,8 +296,9 @@
           var raw = await serverCall('submitStudentEntitlement', {
             full_name: $('fullName').value,
             email: $('email').value,
+            phone: phone,
             student_id: studentId,
-            generation: $('generation').value,
+            generation: generation,
             request_id: requestId,
             rsu_connect: filePayloads[0],
             payment_slip: filePayloads[1]
@@ -336,13 +324,12 @@
         resultBox.classList.add('hidden');
         $('lookupButton').disabled = true;
         try {
-          var raw = await serverCall('lookupStudentEntitlementJson', { student_ticket_code: $('lookupTicket').value, student_id: $('lookupStudentId').value });
+          var raw = await serverCall('lookupStudentEntitlementJson', { lookup: $('lookupInput').value });
           var response = typeof raw === 'string' ? JSON.parse(raw) : raw;
           if (!response.ok) { showError(resultBox, response.message || 'ไม่พบข้อมูล'); return; }
           var r = response.result;
-          var note = r.rejectionNote ? '<dt>หมายเหตุ</dt><dd>' + StudentClient.escapeHtml(r.rejectionNote) + '</dd>' : '';
           var performance = r.assignedPerformance ? '<dt>รอบที่ใช้สิทธิ์</dt><dd>' + StudentClient.escapeHtml(r.assignedPerformance) + '</dd>' : '';
-          resultBox.innerHTML = '<dl><dt>รหัสสิทธิ์</dt><dd>' + StudentClient.escapeHtml(r.ticketId) + '</dd><dt>ชื่อ</dt><dd>' + StudentClient.escapeHtml(r.name) + '</dd><dt>ยอดชำระ</dt><dd>' + amountText(r.amount) + '</dd><dt>สถานะ</dt><dd><span class="status-pill">' + StudentClient.escapeHtml(r.statusLabel) + '</span></dd><dt>การใช้สิทธิ์</dt><dd>' + (r.used ? 'ใช้สิทธิ์แล้ว' : 'ยังไม่ได้ใช้สิทธิ์') + '</dd>' + performance + note + '</dl>';
+          resultBox.innerHTML = '<dl><dt>รหัสสิทธิ์</dt><dd>' + StudentClient.escapeHtml(r.ticketId) + '</dd><dt>ยอดชำระ</dt><dd>' + amountText(r.amount) + '</dd><dt>สถานะ</dt><dd><span class="status-pill">' + StudentClient.escapeHtml(r.statusLabel) + '</span></dd><dt>การใช้สิทธิ์</dt><dd>' + (r.used ? 'ใช้สิทธิ์แล้ว' : 'ยังไม่ได้ใช้สิทธิ์') + '</dd>' + performance + '</dl>' + (r.message ? '<p class="hint">' + StudentClient.escapeHtml(r.message) + '</p>' : '');
           resultBox.classList.remove('hidden');
         } catch (error) { showError(resultBox, errorText(error)); }
         finally { $('lookupButton').disabled = false; }
