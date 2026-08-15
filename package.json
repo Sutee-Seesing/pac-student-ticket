@@ -1,0 +1,9 @@
+{
+  "name": "pac-student-ticket",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PAC 99 THB student entitlement Apps Script application",
+  "scripts": {
+    "test": "node --test"
+  }
+}

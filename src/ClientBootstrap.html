@@ -1,0 +1,70 @@
+<script>
+/* Small client helpers. Server responses remain the source of truth. */
+var StudentClient = (function () {
+  var SALE_STATES = {
+    CLOSED_NOT_STARTED: 'CLOSED_NOT_STARTED',
+    OPEN: 'OPEN',
+    CLOSED_ENDED: 'CLOSED_ENDED'
+  };
+
+  function text(value) { return String(value == null ? '' : value); }
+
+  function escapeHtml(value) {
+    return text(value).replace(/[&<>'"]/g, function (character) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character];
+    });
+  }
+
+  function parseBootstrap(raw) {
+    var data;
+    try { data = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (error) { throw new Error('ข้อมูลตั้งต้นจากเซิร์ฟเวอร์ไม่ถูกต้อง'); }
+    if (!data || data.ok !== true) throw new Error('ไม่สามารถโหลดข้อมูลระบบได้');
+    if (Number(data.amount) !== 99) throw new Error('ระบบกำหนดราคาสิทธิ์ไม่ถูกต้อง');
+    if (Object.keys(SALE_STATES).map(function (key) { return SALE_STATES[key]; }).indexOf(data.saleState) < 0) throw new Error('สถานะการจำหน่ายไม่ถูกต้อง');
+    if (!Array.isArray(data.performanceOptions)) data.performanceOptions = [];
+    if (!data.payment) data.payment = {};
+    return data;
+  }
+
+  function saleBanner(data) {
+    if (data.saleState === SALE_STATES.CLOSED_NOT_STARTED) {
+      return { tone: 'closed', title: 'ยังไม่เปิดจำหน่าย', body: 'เปิดจำหน่ายบัตรราคาพิเศษวันที่ 19 สิงหาคม 2569 เวลา 09:00 น.' };
+    }
+    if (data.saleState === SALE_STATES.CLOSED_ENDED) {
+      return { tone: 'closed', title: 'ปิดจำหน่ายบัตรราคาพิเศษแล้ว', body: 'ขณะนี้พ้นช่วงเวลาจำหน่ายของสิทธิ์นักศึกษาแล้ว' };
+    }
+    return { tone: 'open', title: 'กำลังเปิดจำหน่าย', body: 'กรอกข้อมูลและส่งหลักฐานได้ภายในวันที่ 19 สิงหาคม 2569 เวลา 23:59 น.' };
+  }
+
+  function newRequestId() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+    return 'stu-' + Date.now() + '-' + Math.random().toString(36).slice(2, 12);
+  }
+
+  function fileSizeLabel(bytes) {
+    var value = Number(bytes || 0);
+    return value >= 1024 * 1024 ? (value / (1024 * 1024)).toFixed(1) + ' MB' : Math.ceil(value / 1024) + ' KB';
+  }
+
+  function readFile(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        resolve({ name: file.name, mimeType: file.type, sizeBytes: file.size, dataUrl: reader.result });
+      };
+      reader.onerror = function () { reject(new Error('อ่านไฟล์ไม่สำเร็จ')); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  return {
+    SALE_STATES: SALE_STATES,
+    escapeHtml: escapeHtml,
+    parseBootstrap: parseBootstrap,
+    saleBanner: saleBanner,
+    newRequestId: newRequestId,
+    fileSizeLabel: fileSizeLabel,
+    readFile: readFile
+  };
+}());
+</script>

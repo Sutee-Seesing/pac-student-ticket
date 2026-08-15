@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PAC Student Ticket · Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Pridi:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --stage:#170608; --stage2:#3b0c17; --red:#9f1930; --red2:#6d0d1d; --paper:#fffaf2; --paper2:#f5e4d9; --ink:#2a171a; --muted:#7b6361; --line:#e6cec2; --green:#236b4c; --amber:#95600e; --danger:#9b2438; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--ink); background:radial-gradient(circle at 5% 0,#681a27,transparent 34%),linear-gradient(155deg,var(--stage),var(--stage2)); font:15px/1.5 "Noto Sans Thai",Tahoma,sans-serif; }
+    h1,h2,h3 { font-family:Pridi,"Noto Sans Thai",serif; line-height:1.2; }
+    button,input,select,textarea { font:inherit; }
+    button { min-height:43px; border:0; border-radius:9px; padding:9px 14px; cursor:pointer; font-weight:800; transition:filter .15s ease,transform .15s ease; }
+    button:hover:not(:disabled) { filter:brightness(1.07); transform:translateY(-1px); }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .primary { color:#fff7ef; background:var(--red); box-shadow:0 4px 0 var(--red2); }
+    .secondary { color:var(--red2); background:var(--paper2); }
+    .danger { color:#fff; background:var(--danger); }
+    .shell { width:min(100% - 26px,1280px); margin:auto; padding:25px 0 45px; }
+    .login { width:min(100%,470px); margin:9vh auto 0; }
+    .card { background:var(--paper); border:1px solid #fff8ee; border-radius:17px; box-shadow:0 24px 70px #09010466; padding:23px; margin:15px 0; }
+    .login h1 { margin:0 0 5px; font-size:36px; color:#681321; }
+    .muted { color:var(--muted); }
+    .field { display:flex; flex-direction:column; gap:6px; margin:14px 0; }
+    label { font-weight:800; color:#4d2a2e; }
+    input,select,textarea { width:100%; min-height:44px; padding:10px 11px; color:var(--ink); background:#fffdf9; border:1px solid #d5b9ae; border-radius:9px; outline:none; }
+    input:focus,select:focus,textarea:focus { border-color:var(--red); box-shadow:0 0 0 3px #9f19301c; }
+    textarea { resize:vertical; }
+    .top { display:flex; justify-content:space-between; gap:17px; align-items:flex-start; color:#fff8ef; padding:10px 2px 17px; }
+    .eyebrow { margin:0 0 5px; color:#f0c687; letter-spacing:.12em; font-size:11px; font-weight:800; }
+    .top h1 { margin:0; font-size:clamp(28px,4vw,44px); font-weight:600; }
+    .top p { margin:4px 0 0; color:#e7c9bd; }
+    .top-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .nav { display:flex; gap:8px; overflow-x:auto; padding:2px 0 13px; }
+    .nav button { white-space:nowrap; color:#ffe9dc; background:#652131; border:1px solid #aa5b69; box-shadow:none; }
+    .nav button.active { color:#4e111b; background:#efc886; border-color:#efc886; }
+    .metrics { display:grid; grid-template-columns:repeat(6,minmax(110px,1fr)); gap:10px; }
+    .metric { padding:14px; border:1px solid var(--line); border-radius:12px; background:#fffdf9; }
+    .metric span { display:block; color:var(--muted); font-size:12px; }
+    .metric strong { display:block; color:var(--red2); font:700 27px/1.1 Pridi,serif; margin-top:5px; }
+    .filters { display:grid; grid-template-columns:minmax(190px,2fr) minmax(120px,1fr) minmax(150px,1fr) minmax(140px,1fr) auto auto; gap:8px; align-items:end; }
+    .filters .field { margin:0; }
+    .section-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:13px; }
+    .section-head h2 { margin:0; color:#681321; font-size:26px; }
+    .booking { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; padding:17px 0; border-top:1px solid #ead9d0; }
+    .booking:first-child { border-top:0; }
+    .booking h3 { margin:0 0 4px; color:#681321; font-size:21px; }
+    .booking p { margin:4px 0; }
+    .booking .meta { color:var(--muted); font-size:13px; }
+    .actions { display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; align-content:start; }
+    .badge { display:inline-block; padding:3px 9px; border-radius:99px; background:#f5e5be; color:#82550d; font:700 12px "Noto Sans Thai",sans-serif; vertical-align:middle; }
+    .badge.approved { background:#e2f1e7; color:var(--green); }
+    .badge.rejected { background:#fae4e7; color:var(--danger); }
+    .badge.used { background:#e9e2ee; color:#60356d; }
+    .warning { color:#92570d; font-size:12px; font-weight:800; }
+    .error { padding:12px 14px; border-radius:9px; background:#fbe5e7; border:1px solid #ecc4c9; color:#8e2336; }
+    .empty { text-align:center; padding:32px 10px; color:var(--muted); }
+    .modal { position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:15px; background:#110306cc; }
+    .modal-box { width:min(100%,760px); max-height:92vh; overflow:auto; padding:22px; border-top:4px solid var(--red); border-radius:14px; background:var(--paper); box-shadow:0 30px 80px #000b; }
+    .modal h2 { margin:0 0 12px; color:#681321; font-size:28px; }
+    .detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 18px; margin:13px 0; }
+    .detail-grid div { border-bottom:1px solid #ead9d0; padding:5px 0; }
+    .detail-grid span { display:block; color:var(--muted); font-size:12px; }
+    .detail-grid strong { overflow-wrap:anywhere; }
+    .proof-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .proof { padding:10px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+    .proof strong { display:block; color:#681321; margin-bottom:7px; }
+    .proof img { display:block; width:100%; height:220px; object-fit:contain; background:#f4ede6; border-radius:7px; }
+    .modal-actions { display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; margin-top:18px; }
+    .hidden { display:none !important; }
+    .spinner { color:var(--muted); padding:20px 0; text-align:center; }
+    footer { padding:10px; color:#e0b9ad; text-align:center; font-size:12px; }
+    @media(max-width:900px) { .metrics { grid-template-columns:repeat(3,minmax(110px,1fr)); } .filters { grid-template-columns:repeat(2,minmax(0,1fr)); } .filters .wide { grid-column:1/-1; } }
+    @media(max-width:630px) { .shell { width:min(100% - 18px,560px); padding-top:10px; } .top { flex-direction:column; } .top-actions { justify-content:flex-start; } .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .filters { grid-template-columns:1fr; } .filters .wide { grid-column:auto; } .booking { grid-template-columns:1fr; } .actions { justify-content:stretch; } .actions button { flex:1; } .detail-grid,.proof-grid { grid-template-columns:1fr; } .proof img { height:260px; } .card { padding:17px 14px; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section id="login" class="card login">
+      <p class="eyebrow">PAC STUDENT TICKET · STAFF ONLY</p>
+      <h1>ศูนย์จัดการสิทธิ์นักศึกษา</h1>
+      <p class="muted">เข้าสู่ระบบด้วย ADMIN_TOKEN ของแอปพลิเคชันนี้เท่านั้น</p>
+      <div class="field"><label for="token">รหัสเจ้าหน้าที่</label><input id="token" type="password" autocomplete="current-password"></div>
+      <div class="field"><label for="operator">ชื่อผู้ปฏิบัติงาน <span class="muted">(สำหรับบันทึกประวัติ)</span></label><input id="operator" type="text" maxlength="80" placeholder="เช่น แอดมิน A"></div>
+      <button id="loginButton" class="primary" type="button">เข้าสู่ระบบ</button>
+      <div id="loginError" class="error hidden" role="alert"></div>
+    </section>
+
+    <section id="dashboard" class="hidden">
+      <header class="top">
+        <div><p class="eyebrow">PAC STUDENT TICKET · PRIVATE ADMIN</p><h1 id="eventTitle">ศูนย์จัดการสิทธิ์นักศึกษา</h1><p>ข้อมูลจาก StudentBookings ของแอปพลิเคชันนี้</p></div>
+        <div class="top-actions"><button id="refreshButton" class="secondary" type="button">รีเฟรช</button><button id="logoutButton" class="secondary" type="button">ออกจากระบบ</button></div>
+      </header>
+      <nav id="nav" class="nav" aria-label="เมนูเจ้าหน้าที่">
+        <button data-tab="overview" type="button" class="active">ภาพรวม</button><button data-tab="WAITING_REVIEW" type="button">รอตรวจสอบ</button><button data-tab="APPROVED" type="button">อนุมัติแล้ว</button><button data-tab="REJECTED" type="button">ปฏิเสธ</button><button data-tab="USED" type="button">ใช้สิทธิ์แล้ว</button><button data-tab="ALL" type="button">รายการทั้งหมด</button>
+      </nav>
+      <section id="metricsCard" class="card"><div id="metrics" class="metrics"></div></section>
+      <section id="listCard" class="card hidden">
+        <div class="section-head"><h2 id="listTitle">รายการ</h2><button id="csvButton" class="secondary" type="button">ส่งออก CSV</button></div>
+        <div class="filters">
+          <div class="field wide"><label for="query">ค้นหา</label><input id="query" type="search" placeholder="Ticket ID / ชื่อ / อีเมล / รหัสนักศึกษา"></div>
+          <div class="field"><label for="statusFilter">สถานะ</label><select id="statusFilter"><option value="">ทุกสถานะ</option><option value="WAITING_REVIEW">รอตรวจสอบ</option><option value="APPROVED">อนุมัติแล้ว</option><option value="REJECTED">ปฏิเสธ</option><option value="USED">ใช้สิทธิ์แล้ว</option></select></div>
+          <div class="field"><label for="generationFilter">รุ่น</label><input id="generationFilter" type="text" placeholder="เช่น 19"></div>
+          <div class="field"><label for="sortFilter">เรียงลำดับ</label><select id="sortFilter"><option value="newest">ใหม่ที่สุดก่อน</option><option value="oldest">เก่าที่สุดก่อน</option><option value="name">ตามชื่อ</option><option value="student_id">ตามรหัสนักศึกษา</option></select></div>
+          <button id="filterButton" class="primary" type="button">ค้นหา</button><button id="clearButton" class="secondary" type="button">ล้าง</button>
+        </div>
+        <div id="list" class="spinner">กำลังโหลดข้อมูล…</div>
+      </section>
+    </section>
+  </main>
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true"><div id="modalBox" class="modal-box"></div></div>
+  <footer>ข้อมูลหลักฐานเก็บใน Google Drive ส่วนตัวของระบบ · อย่าแชร์ ADMIN_TOKEN</footer>
+
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      var token = '';
+      var operator = '';
+      var activeTab = 'overview';
+      var latest = null;
+
+      function call(name) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        return new Promise(function (resolve, reject) {
+          var runner = google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);
+          runner[name].apply(runner, args);
+        });
+      }
+      function errText(error) { return error && error.message ? error.message : String(error || 'เกิดข้อผิดพลาด'); }
+      function esc(value) { return String(value == null ? '' : value).replace(/[&<>'"]/g, function (c) { return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[c]; }); }
+      function raw(value) { try { return typeof value === 'string' ? JSON.parse(value) : value; } catch (error) { throw new Error('ข้อมูลจากเซิร์ฟเวอร์ไม่ถูกต้อง'); } }
+      function showLoginError(message) { $('loginError').textContent = message; $('loginError').classList.remove('hidden'); }
+      function badge(status, label) { var kind = status === 'APPROVED' ? 'approved' : status === 'REJECTED' ? 'rejected' : status === 'USED' ? 'used' : ''; return '<span class="badge ' + kind + '">' + esc(label) + '</span>'; }
+      function money(value) { return Number(value || 0).toLocaleString('th-TH') + ' บาท'; }
+
+      async function login() {
+        token = $('token').value.trim(); operator = $('operator').value.trim();
+        if (!token) { showLoginError('กรุณากรอกรหัสเจ้าหน้าที่'); return; }
+        $('loginButton').disabled = true;
+        try { await load('overview'); $('login').classList.add('hidden'); $('dashboard').classList.remove('hidden'); }
+        catch (error) { showLoginError(errText(error)); }
+        finally { $('loginButton').disabled = false; }
+      }
+
+      function currentFilters() {
+        return { query: $('query').value, status: $('statusFilter').value, generation: $('generationFilter').value, sort: $('sortFilter').value };
+      }
+
+      async function load(tab) {
+        if (tab) activeTab = tab;
+        var filters = activeTab === 'overview' ? {} : currentFilters();
+        if (activeTab !== 'overview' && activeTab !== 'ALL') filters.status = activeTab;
+        $('list').innerHTML = '<div class="spinner">กำลังโหลดข้อมูล…</div>';
+        var response = raw(await call('getAdminDataJson', token, filters));
+        if (!response || response.ok !== true) throw new Error('ไม่สามารถโหลดข้อมูลได้');
+        latest = response;
+        $('eventTitle').textContent = 'ศูนย์จัดการสิทธิ์นักศึกษา · ' + response.eventName;
+        renderMetrics(response.metrics);
+        setNav();
+        if (activeTab === 'overview') { $('metricsCard').classList.remove('hidden'); $('listCard').classList.add('hidden'); }
+        else { $('metricsCard').classList.remove('hidden'); $('listCard').classList.remove('hidden'); $('listTitle').textContent = titleFor(activeTab); renderList(response.bookings); }
+      }
+
+      function titleFor(tab) { return ({ WAITING_REVIEW:'รายการรอตรวจสอบ', APPROVED:'รายการอนุมัติแล้ว', REJECTED:'รายการปฏิเสธ', USED:'รายการใช้สิทธิ์แล้ว', ALL:'รายการทั้งหมด' })[tab] || 'รายการ'; }
+      function setNav() { Array.prototype.forEach.call(document.querySelectorAll('#nav button'), function (button) { button.classList.toggle('active', button.getAttribute('data-tab') === activeTab); }); }
+      function renderMetrics(m) {
+        var data = [['รายการทั้งหมด', m.total], ['รอตรวจสอบ', m.waiting], ['อนุมัติแล้ว', m.approved], ['ปฏิเสธ', m.rejected], ['ใช้สิทธิ์แล้ว', m.used], ['รายได้ที่ยืนยันแล้ว', money(m.confirmedRevenue)]];
+        $('metrics').innerHTML = data.map(function (item) { return '<div class="metric"><span>' + item[0] + '</span><strong>' + esc(item[1]) + '</strong></div>'; }).join('');
+      }
+      function renderList(rows) {
+        if (!rows || !rows.length) { $('list').innerHTML = '<div class="empty">ไม่พบรายการตามเงื่อนไข</div>'; return; }
+        $('list').innerHTML = rows.map(function (b) {
+          var warning = b.duplicateEmail ? '<span class="warning">⚠ อีเมลนี้ใช้กับหลายรหัสนักศึกษา</span>' : '';
+          var actions = '<button class="secondary" data-action="detail" data-code="' + esc(b.ticketId) + '">รายละเอียด</button><button class="secondary" data-action="rsu" data-code="' + esc(b.ticketId) + '">ดู RSU Connect</button><button class="secondary" data-action="slip" data-code="' + esc(b.ticketId) + '">ดูสลิป</button>';
+          if (b.status === 'WAITING_REVIEW') actions += '<button class="primary" data-action="review" data-code="' + esc(b.ticketId) + '">ตรวจรายการ</button>';
+          if (b.status === 'APPROVED') actions += '<button class="danger" data-action="use" data-code="' + esc(b.ticketId) + '">ใช้สิทธิ์</button>';
+          return '<article class="booking"><div><h3>' + esc(b.ticketId) + ' ' + badge(b.status, b.statusLabel) + '</h3><p><strong>' + esc(b.fullName) + '</strong> · ' + esc(b.email) + ' ' + warning + '</p><p>รหัสนักศึกษา ' + esc(b.studentId) + ' · รุ่น ' + esc(b.generation) + ' · ' + money(b.amount) + '</p><p class="meta">ส่งเมื่อ ' + esc(b.createdAt) + (b.reviewedAt !== '-' ? ' · ตรวจเมื่อ ' + esc(b.reviewedAt) : '') + (b.assignedPerformance ? ' · รอบที่ใช้ ' + esc(b.assignedPerformance) : '') + '</p></div><div class="actions">' + actions + '</div></article>';
+        }).join('');
+      }
+
+      function openModal(html) { $('modalBox').innerHTML = html; $('modal').classList.remove('hidden'); }
+      function closeModal() { $('modal').classList.add('hidden'); $('modalBox').innerHTML = ''; }
+      function detailMarkup(b) { return '<div class="detail-grid"><div><span>ชื่อ-นามสกุล</span><strong>' + esc(b.fullName) + '</strong></div><div><span>Ticket ID</span><strong>' + esc(b.ticketId) + '</strong></div><div><span>อีเมล</span><strong>' + esc(b.email) + '</strong></div><div><span>รหัสนักศึกษา</span><strong>' + esc(b.studentId) + '</strong></div><div><span>รุ่น</span><strong>' + esc(b.generation) + '</strong></div><div><span>จำนวนเงิน</span><strong>' + money(b.amount) + '</strong></div><div><span>สถานะ</span><strong>' + badge(b.status, b.statusLabel) + '</strong></div><div><span>วันที่ส่ง</span><strong>' + esc(b.createdAt) + '</strong></div><div><span>ผู้ตรวจ</span><strong>' + esc(b.reviewer || '-') + '</strong></div><div><span>หมายเหตุ</span><strong>' + esc(b.adminNote || '-') + '</strong></div><div><span>รอบที่ใช้สิทธิ์</span><strong>' + esc(b.assignedPerformance || '-') + '</strong></div><div><span>ผู้ใช้สิทธิ์</span><strong>' + esc(b.usedBy || '-') + '</strong></div></div>'; }
+
+      async function showDetail(code) {
+        openModal('<h2>รายละเอียดรายการ</h2><div class="spinner">กำลังโหลดรายละเอียด…</div>');
+        try { var response = raw(await call('getAdminBookingDetailJson', token, code)); openModal('<h2>' + esc(response.booking.ticketId) + '</h2>' + detailMarkup(response.booking) + '<div class="modal-actions"><button class="secondary" data-close="1">ปิด</button></div>'); }
+        catch (error) { openModal('<h2>ไม่สามารถเปิดรายการ</h2><p class="error">' + esc(errText(error)) + '</p><div class="modal-actions"><button class="secondary" data-close="1">ปิด</button></div>'); }
+      }
+
+      async function showImage(code, kind, label) {
+        openModal('<h2>' + esc(label) + '</h2><div class="spinner">กำลังเปิดไฟล์อย่างปลอดภัย…</div>');
+        try {
+          var response = raw(await call('getAdminImageJson', token, code, kind));
+          var box = '<h2>' + esc(label) + '</h2><img id="viewerImage" style="display:block;width:100%;max-height:70vh;object-fit:contain;background:#f4ede6;border-radius:9px" alt="' + esc(label) + '"><div class="modal-actions"><button class="secondary" data-close="1">ปิด</button></div>';
+          openModal(box); $('viewerImage').src = response.dataUrl;
+        } catch (error) { openModal('<h2>ไม่สามารถเปิดไฟล์</h2><p class="error">' + esc(errText(error)) + '</p><div class="modal-actions"><button class="secondary" data-close="1">ปิด</button></div>'); }
+      }
+
+      async function review(code) {
+        openModal('<h2>ตรวจสอบรายการ</h2><div class="spinner">กำลังโหลดข้อมูลและหลักฐาน…</div>');
+        try {
+          var detail = raw(await call('getAdminBookingDetailJson', token, code));
+          var images = await Promise.all([call('getAdminImageJson', token, code, 'rsu'), call('getAdminImageJson', token, code, 'slip')]);
+          images = images.map(raw);
+          openModal('<h2>ตรวจสอบ ' + esc(detail.booking.ticketId) + '</h2>' + detailMarkup(detail.booking) + '<div class="proof-grid"><div class="proof"><strong>หลักฐาน RSU Connect</strong><img id="reviewRsu" alt="หลักฐาน RSU Connect"></div><div class="proof"><strong>สลิปการชำระเงิน</strong><img id="reviewSlip" alt="สลิปการชำระเงิน"></div></div><div id="reviewNoteBox" class="field"><label for="reviewReason">เหตุผลกรณีปฏิเสธ</label><select id="reviewReason"><option value="">เลือกเหตุผล</option><option>ข้อมูล RSU Connect ไม่ชัดเจน</option><option>ข้อมูลไม่ตรงกับที่กรอก</option><option>รหัสนักศึกษาไม่อยู่ในช่วงที่กำหนด</option><option>สลิปไม่ถูกต้อง</option><option>ยอดเงินไม่ถูกต้อง</option><option>อื่น ๆ</option></select><textarea id="reviewNote" rows="3" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></div><div class="modal-actions"><button class="secondary" data-close="1">ยกเลิก</button><button class="danger" data-review="REJECTED" data-code="' + esc(code) + '">ปฏิเสธรายการ</button><button class="primary" data-review="APPROVED" data-code="' + esc(code) + '">อนุมัติสิทธิ์</button></div>');
+          $('reviewRsu').src = images[0].dataUrl; $('reviewSlip').src = images[1].dataUrl;
+        } catch (error) { openModal('<h2>ไม่สามารถเปิดรายการ</h2><p class="error">' + esc(errText(error)) + '</p><div class="modal-actions"><button class="secondary" data-close="1">ปิด</button></div>'); }
+      }
+
+      async function commitReview(code, status) {
+        var reason = $('reviewReason') ? $('reviewReason').value : '';
+        var note = [reason, $('reviewNote') ? $('reviewNote').value : ''].filter(Boolean).join(' · ');
+        if (status === 'REJECTED' && !note.trim() && !window.confirm('ยังไม่ได้ระบุเหตุผล ต้องการปฏิเสธรายการหรือไม่')) return;
+        try { await call('reviewStudentEntitlement', token, code, status, note, operator); closeModal(); await load(activeTab); }
+        catch (error) { var el = $('modalBox').querySelector('.error'); if (el) el.textContent = errText(error); else openModal('<p class="error">' + esc(errText(error)) + '</p>'); }
+      }
+
+      function openUse(code) {
+        var options = latest && latest.performanceOptions ? latest.performanceOptions : [];
+        openModal('<h2>ใช้สิทธิ์ ' + esc(code) + '</h2><p>กรุณาตรวจสอบชื่อและรหัสสิทธิ์ก่อนกดยืนยัน การใช้สิทธิ์จะทำให้รายการเป็น <strong>ใช้สิทธิ์แล้ว</strong> และไม่สามารถใช้ซ้ำได้</p><div class="field"><label for="performance">รอบการแสดงที่เข้าชม (ถ้าทราบ)</label><select id="performance"><option value="">ยังไม่ระบุ</option>' + options.map(function (value) { return '<option value="' + esc(value) + '">' + esc(value) + '</option>'; }).join('') + '</select></div><div class="modal-actions"><button class="secondary" data-close="1">ยกเลิก</button><button class="danger" data-use="' + esc(code) + '">ยืนยันใช้สิทธิ์</button></div>');
+      }
+
+      async function commitUse(code) {
+        if (!window.confirm('ยืนยันใช้สิทธิ์ ' + code + ' หรือไม่ รายการนี้จะใช้ซ้ำไม่ได้')) return;
+        try { await call('useStudentEntitlement', token, code, $('performance').value, operator); closeModal(); await load(activeTab); }
+        catch (error) { openModal('<p class="error">' + esc(errText(error)) + '</p><div class="modal-actions"><button class="secondary" data-close="1">ปิด</button></div>'); }
+      }
+
+      function exportCsv() {
+        call('getAdminCsvJson', token, activeTab === 'overview' ? {} : currentFilters()).then(function (rawResponse) {
+          var response = raw(rawResponse); var blob = new Blob(['\ufeff' + response.csv], { type: 'text/csv;charset=utf-8' }); var link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = response.filename; link.click(); URL.revokeObjectURL(link.href);
+        }).catch(function (error) { alert(errText(error)); });
+      }
+
+      $('loginButton').addEventListener('click', login);
+      $('token').addEventListener('keydown', function (event) { if (event.key === 'Enter') login(); });
+      $('refreshButton').addEventListener('click', function () { load(activeTab).catch(function (error) { alert(errText(error)); }); });
+      $('logoutButton').addEventListener('click', function () { token = ''; latest = null; $('dashboard').classList.add('hidden'); $('login').classList.remove('hidden'); $('token').value = ''; });
+      Array.prototype.forEach.call(document.querySelectorAll('#nav button'), function (button) { button.addEventListener('click', function () { activeTab = button.getAttribute('data-tab'); if (activeTab !== 'overview' && activeTab !== 'ALL') $('statusFilter').value = activeTab; if (activeTab === 'WAITING_REVIEW') $('sortFilter').value = 'oldest'; load(activeTab).catch(function (error) { alert(errText(error)); }); }); });
+      $('filterButton').addEventListener('click', function () { activeTab = 'ALL'; load(activeTab).catch(function (error) { alert(errText(error)); }); });
+      $('clearButton').addEventListener('click', function () { $('query').value = ''; $('statusFilter').value = ''; $('generationFilter').value = ''; $('sortFilter').value = 'newest'; activeTab = 'ALL'; load(activeTab).catch(function (error) { alert(errText(error)); }); });
+      $('csvButton').addEventListener('click', exportCsv);
+      $('list').addEventListener('click', function (event) { var button = event.target.closest('button[data-action]'); if (!button) return; var code = button.getAttribute('data-code'); var action = button.getAttribute('data-action'); if (action === 'detail') showDetail(code); if (action === 'rsu') showImage(code, 'rsu', 'หลักฐาน RSU Connect'); if (action === 'slip') showImage(code, 'slip', 'สลิปการชำระเงิน'); if (action === 'review') review(code); if (action === 'use') openUse(code); });
+      $('modal').addEventListener('click', function (event) { if (event.target === $('modal') || event.target.closest('[data-close]')) closeModal(); var reviewButton = event.target.closest('[data-review]'); if (reviewButton) commitReview(reviewButton.getAttribute('data-code'), reviewButton.getAttribute('data-review')); var useButton = event.target.closest('[data-use]'); if (useButton) commitUse(useButton.getAttribute('data-use')); });
+    }());
+  </script>
+</body>
+</html>

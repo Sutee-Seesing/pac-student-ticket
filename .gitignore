@@ -1,0 +1,9 @@
+.clasp.json
+.clasprc.json
+node_modules/
+coverage/
+.env
+*.local
+*.log
+real-uploads/
+test/fixtures/private/

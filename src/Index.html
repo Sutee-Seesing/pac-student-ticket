@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#170608">
+  <title>PAC Student Ticket · 99 บาท</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Pridi:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --stage: #170608;
+      --stage-2: #310b14;
+      --red: #9f1930;
+      --red-dark: #6d0d1d;
+      --ink: #29171b;
+      --muted: #785f62;
+      --paper: #fffaf2;
+      --paper-2: #f7e8dc;
+      --line: #e6cfc3;
+      --gold: #d6a55b;
+      --ok: #236b4c;
+      --danger: #9b2438;
+      --shadow: 0 24px 60px rgba(21, 4, 7, .28);
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--stage); scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: radial-gradient(circle at 12% -8%, #6a1d29 0, transparent 35%), linear-gradient(160deg, var(--stage) 0 38%, #4a111c 100%); font: 16px/1.55 "Noto Sans Thai", Tahoma, sans-serif; min-height: 100vh; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .11; background-image: linear-gradient(115deg, transparent 0 46%, #fff 46.2% 46.4%, transparent 46.6%), linear-gradient(70deg, transparent 0 53%, #fff 53.2% 53.4%, transparent 53.6%); mix-blend-mode: screen; }
+    h1, h2, h3 { font-family: Pridi, "Noto Sans Thai", serif; line-height: 1.18; }
+    h1, h2, h3, p { margin-top: 0; }
+    button, input { font: inherit; }
+    button { min-height: 46px; border: 0; border-radius: 10px; padding: 11px 17px; cursor: pointer; font-weight: 800; transition: transform .15s ease, filter .15s ease; }
+    button:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-1px); }
+    button:disabled { cursor: not-allowed; opacity: .52; }
+    .primary { color: #fff9ee; background: linear-gradient(135deg, var(--red), #c0354d); box-shadow: 0 5px 0 var(--red-dark); }
+    .secondary { color: var(--red-dark); background: var(--paper-2); }
+    .shell { width: min(100% - 28px, 1040px); margin: 0 auto; padding: 24px 0 46px; position: relative; }
+    .masthead { color: #fff6ea; display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: end; padding: 20px 2px 24px; }
+    .eyebrow { margin: 0 0 8px; color: #efc98d; letter-spacing: .16em; font-size: 12px; font-weight: 800; }
+    .masthead h1 { margin: 0; font-size: clamp(31px, 7vw, 60px); font-weight: 600; letter-spacing: -.025em; }
+    .masthead p { margin: 11px 0 0; color: #f1d8cb; max-width: 650px; }
+    .price-stamp { border: 1px solid #e8b97899; color: #2d0d10; background: #f1c883; border-radius: 100px; padding: 12px 18px; font-weight: 800; text-align: center; transform: rotate(2deg); box-shadow: 0 8px 24px #08010255; white-space: nowrap; }
+    .price-stamp strong { display: block; font-family: Pridi, serif; font-size: 27px; line-height: 1; }
+    .card { background: var(--paper); border: 1px solid #fff8ef; border-radius: 18px; box-shadow: var(--shadow); padding: clamp(18px, 4vw, 30px); margin: 16px 0; }
+    .sale-banner { display: flex; align-items: flex-start; gap: 14px; padding: 17px 19px; border-radius: 14px; background: #f6e8ca; color: #704415; border: 1px solid #e5c995; }
+    .sale-banner.open { background: #e3f0e7; color: #1f6046; border-color: #bbd9c6; }
+    .sale-banner strong { display: block; font-size: 18px; }
+    .sale-banner p { margin: 2px 0 0; font-size: 14px; }
+    .notice-icon { flex: 0 0 28px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: currentColor; color: #f6e8ca; font-weight: 900; }
+    .open .notice-icon { color: #e3f0e7; }
+    .section-title { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; }
+    .section-title h2 { margin: 0; font-size: clamp(23px, 5vw, 31px); color: #651021; }
+    .section-title span { color: var(--muted); font-size: 13px; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 2px 0 22px; padding: 0; list-style: none; }
+    .steps li { color: #947a76; border-top: 3px solid #ead8ce; padding-top: 8px; font-size: 12px; font-weight: 700; }
+    .steps li.active { color: var(--red); border-color: var(--red); }
+    .steps b { display: inline-grid; place-items: center; width: 23px; height: 23px; margin-right: 4px; border-radius: 50%; background: #f2e2d8; }
+    .steps .active b { color: #fff; background: var(--red); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-weight: 800; color: #4c292e; }
+    input[type="text"], input[type="email"], input[type="number"], input[type="password"], input[type="file"] { width: 100%; border: 1px solid #d8bdb2; border-radius: 10px; background: #fffdf9; color: var(--ink); padding: 12px 13px; min-height: 47px; outline: none; }
+    input:focus { border-color: var(--red); box-shadow: 0 0 0 3px #9f19301a; }
+    input[type="file"] { padding: 9px; }
+    input[type="file"]::file-selector-button { margin-right: 9px; border: 0; border-radius: 7px; padding: 8px 10px; color: #fff; background: var(--red); font-weight: 700; cursor: pointer; }
+    .hint { color: var(--muted); font-size: 13px; margin: 0; }
+    .hint strong { color: var(--red-dark); }
+    .upload-card { border: 1px dashed #c99f91; border-radius: 13px; padding: 16px; background: #fff7ee; }
+    .upload-card h3 { color: #681321; font-size: 20px; margin-bottom: 6px; }
+    .upload-card + .upload-card { margin-top: 14px; }
+    .file-name { color: var(--ok); font-size: 13px; margin: 7px 0 0; min-height: 20px; }
+    .payment-layout { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 18px; align-items: center; }
+    .bank-panel { border: 1px solid var(--line); border-radius: 13px; padding: 17px; background: #fffdf9; }
+    .bank-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #efdfd4; }
+    .bank-row:last-child { border-bottom: 0; }
+    .bank-row span { color: var(--muted); font-size: 14px; }
+    .bank-row strong { text-align: right; overflow-wrap: anywhere; }
+    .copy-btn { min-height: 34px; padding: 5px 9px; margin-left: 8px; font-size: 12px; }
+    .qr-box { text-align: center; }
+    .qr-box img { display: block; width: 100%; max-width: 210px; max-height: 210px; object-fit: contain; margin: 0 auto 7px; padding: 7px; background: #fff; border: 1px solid var(--line); border-radius: 10px; }
+    .qr-box figcaption { color: var(--muted); font-size: 12px; }
+    .disclaimer { border-left: 4px solid var(--gold); padding: 12px 14px; background: #fff5da; color: #68461d; border-radius: 0 10px 10px 0; font-size: 14px; }
+    .performance-note { border: 1px solid #dec1b3; border-radius: 13px; padding: 16px; background: linear-gradient(135deg, #f7e8dc, #fffaf2); }
+    .performance-note strong { display: block; color: #681321; margin-bottom: 5px; }
+    .checkline { display: flex; align-items: flex-start; gap: 10px; margin: 12px 0; font-size: 14px; }
+    .checkline input { flex: 0 0 auto; width: 20px; height: 20px; margin-top: 2px; accent-color: var(--red); }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+    .error, .success, .lookup-result { padding: 13px 15px; border-radius: 10px; margin: 14px 0 0; }
+    .error { background: #fbe5e7; color: #8e2336; border: 1px solid #ecc4c9; }
+    .success { background: #e4f2e9; color: #205e43; border: 1px solid #badcc8; }
+    .success-ticket { margin: 18px 0; padding: 19px; border: 2px dashed #c6965b; border-radius: 14px; background: #fff9e9; text-align: center; }
+    .success-ticket small { display: block; color: var(--muted); }
+    .success-ticket strong { display: block; color: var(--red-dark); font: 700 clamp(30px, 8vw, 46px)/1.2 Pridi, serif; letter-spacing: .03em; }
+    .status-pill { display: inline-block; border-radius: 99px; padding: 5px 11px; background: #f5e3bd; color: #81520c; font-weight: 800; font-size: 13px; }
+    .lookup { background: #241015; color: #fff3e9; border-color: #6b2633; }
+    .lookup h2 { color: #f2c989; }
+    .lookup label { color: #f7ded1; }
+    .lookup input { background: #fffaf2; }
+    .lookup-result { background: #fffaf2; color: var(--ink); border: 0; }
+    .lookup-result dl { display: grid; grid-template-columns: 150px 1fr; gap: 7px 12px; margin: 0; }
+    .lookup-result dt { color: var(--muted); }
+    .lookup-result dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+    .hidden { display: none !important; }
+    .loading { color: #f6d4c4; text-align: center; padding: 28px; }
+    footer { color: #e0b9ad; text-align: center; font-size: 12px; padding: 10px 0; }
+    footer a { color: #f2c989; }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 20px, 560px); padding-top: 10px; }
+      .masthead { grid-template-columns: 1fr; align-items: start; padding-top: 15px; }
+      .price-stamp { justify-self: start; }
+      .grid, .payment-layout { grid-template-columns: 1fr; }
+      .qr-box img { max-width: 240px; }
+      .steps li { font-size: 11px; }
+      .steps b { display: block; margin-bottom: 3px; }
+      .form-actions { flex-direction: column-reverse; }
+      .form-actions button { width: 100%; }
+      .lookup-result dl { grid-template-columns: 1fr; gap: 2px; }
+      .lookup-result dd { margin-bottom: 7px; }
+    }
+    @media (max-width: 390px) {
+      .card { padding: 16px 14px; }
+      .steps { gap: 4px; }
+      .steps li { letter-spacing: -.02em; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">PERFORMING ARTS COMMUNICATION · PAC</p>
+        <h1 id="eventName">PAC Student Ticket</h1>
+        <p id="eventDescription">สิทธิ์เข้าชมการแสดงสำหรับนักศึกษา PAC</p>
+      </div>
+      <div class="price-stamp"><strong>99 บาท</strong>ต่อ 1 สิทธิ์</div>
+    </header>
+
+    <div id="bootLoading" class="loading">กำลังโหลดข้อมูลการจำหน่าย…</div>
+    <div id="bootError" class="error hidden" role="alert"></div>
+
+    <section id="app" class="hidden">
+      <div id="saleBanner" class="sale-banner" role="status"><div class="notice-icon">!</div><div><strong id="saleTitle"></strong><p id="saleBody"></p></div></div>
+
+      <section class="card">
+        <div class="section-title"><h2>ก่อนใช้สิทธิ์</h2><span>โปรดอ่านรายละเอียด</span></div>
+        <div class="performance-note">
+          <strong>บัตรราคาพิเศษสำหรับนักศึกษา 99 บาท เป็นสิทธิ์เข้าชม 1 ครั้ง และไม่สามารถเลือกรอบการแสดงล่วงหน้าได้</strong>
+          <p>ผู้ซื้อบัตรราคาปกติจะได้รับสิทธิ์เลือกรอบการแสดงก่อน ส่วนผู้ถือสิทธิ์นักศึกษาจะเลือกรอบการแสดงจากรอบที่เปิดให้เข้าชม ณ หน้างาน</p>
+          <p class="hint">สิทธิ์นักศึกษาไม่มีโควตารวม และไม่ใช้หรือลดความจุของระบบบัตรราคาปกติ</p>
+        </div>
+      </section>
+
+      <section id="formCard" class="card">
+        <div class="section-title"><h2>ส่งข้อมูลขอใช้สิทธิ์</h2><span>1 คน · 1 สิทธิ์ · 99 บาท</span></div>
+        <ol class="steps" aria-label="ขั้นตอนการส่งข้อมูล">
+          <li class="active"><b>1</b>ข้อมูลผู้ซื้อ</li>
+          <li class="active"><b>2</b>ยืนยันนักศึกษา</li>
+          <li class="active"><b>3</b>ชำระเงิน</li>
+          <li><b>4</b>ส่งสำเร็จ</li>
+        </ol>
+        <form id="studentForm" novalidate>
+          <div class="grid">
+            <div class="field full"><label for="fullName">ชื่อ-นามสกุล</label><input id="fullName" name="full_name" type="text" maxlength="120" autocomplete="name" required placeholder="กรอกชื่อและนามสกุล"></div>
+            <div class="field"><label for="email">อีเมล</label><input id="email" name="email" type="email" maxlength="160" autocomplete="email" required placeholder="name@example.com"></div>
+            <div class="field"><label for="studentId">รหัสนักศึกษา</label><input id="studentId" name="student_id" type="text" inputmode="numeric" maxlength="7" autocomplete="off" required placeholder="เช่น 6605810"><p id="studentIdHint" class="hint">สำหรับนักศึกษารหัสขึ้นต้น <strong>66–69</strong> เท่านั้น</p></div>
+            <div class="field"><label for="generation">รุ่น</label><input id="generation" name="generation" type="text" maxlength="30" required placeholder="เช่น 19"></div>
+          </div>
+
+          <hr>
+          <div class="section-title"><h2>ยืนยันสถานะนักศึกษา</h2><span>ขั้นตอนที่ 2</span></div>
+          <div class="upload-card">
+            <h3>หลักฐานยืนยันสถานะนักศึกษา</h3>
+            <p class="hint">กรุณาอัปโหลดภาพหน้าโปรไฟล์ RSU Connect ที่เห็นชื่อ-นามสกุล คณะ/สาขา และข้อมูลนักศึกษาอย่างชัดเจน</p>
+            <input id="rsuFile" type="file" accept="image/jpeg,image/png,image/webp" required>
+            <p id="rsuFileName" class="file-name" aria-live="polite"></p>
+            <p class="hint">รองรับ JPEG, PNG, WEBP ขนาดไม่เกิน 5 MB</p>
+          </div>
+
+          <hr>
+          <div class="section-title"><h2>ชำระเงิน</h2><span>ขั้นตอนที่ 3 · ยอดชำระ 99 บาท</span></div>
+          <div class="payment-layout">
+            <div class="bank-panel">
+              <div class="bank-row"><span>ธนาคาร</span><strong id="bankName">-</strong></div>
+              <div class="bank-row"><span>ชื่อบัญชี</span><strong id="accountHolder">-</strong></div>
+              <div class="bank-row"><span>เลขบัญชี</span><strong><span id="accountNumber">-</span><button id="copyAccount" type="button" class="secondary copy-btn">คัดลอก</button></strong></div>
+              <p id="supportContact" class="hint"></p>
+            </div>
+            <figure id="qrBox" class="qr-box hidden"><img id="qrImage" alt="QR พร้อมเพย์สำหรับชำระเงิน"><figcaption>สแกน QR พร้อมเพย์เพื่อชำระเงิน</figcaption></figure>
+          </div>
+          <div class="upload-card">
+            <h3>สลิปการชำระเงิน</h3>
+            <p class="hint">ชำระเงินจำนวน <strong>99 บาท</strong> แล้วอัปโหลดสลิปเพื่อให้เจ้าหน้าที่ตรวจสอบ</p>
+            <input id="slipFile" type="file" accept="image/jpeg,image/png,image/webp" required>
+            <p id="slipFileName" class="file-name" aria-live="polite"></p>
+            <p class="hint">รองรับ JPEG, PNG, WEBP ขนาดไม่เกิน 5 MB</p>
+          </div>
+          <div class="disclaimer">การชำระเงินยังไม่ถือว่าได้รับสิทธิ์ จนกว่าเจ้าหน้าที่จะตรวจสอบข้อมูลนักศึกษาและสลิปการชำระเงินเรียบร้อยแล้ว</div>
+
+          <label class="checkline"><input id="confirmStudent" type="checkbox" required><span>ข้าพเจ้ายืนยันว่าเป็นนักศึกษา PAC และข้อมูลที่กรอกตรงกับหลักฐาน RSU Connect</span></label>
+          <label class="checkline"><input id="confirmPayment" type="checkbox" required><span>ข้าพเจ้าชำระเงิน 99 บาท และเข้าใจว่าสิทธิ์นี้ไม่สามารถเลือกรอบการแสดงล่วงหน้าได้</span></label>
+          <div id="formError" class="error hidden" role="alert"></div>
+          <div class="form-actions"><button id="submitButton" type="submit" class="primary">ส่งข้อมูลขอใช้สิทธิ์ 99 บาท</button></div>
+        </form>
+      </section>
+
+      <section id="successCard" class="card hidden" aria-live="polite">
+        <div class="section-title"><h2>รับข้อมูลแล้ว</h2><span>ขั้นตอนที่ 4</span></div>
+        <p id="successExplanation">เจ้าหน้าที่กำลังตรวจสอบข้อมูล RSU Connect และสลิปการชำระเงิน</p>
+        <div class="success-ticket"><small>รหัสสิทธิ์ของคุณ</small><strong id="successTicket">PAC-STU-0001</strong><span id="successStatus" class="status-pill">รอตรวจสอบ</span></div>
+        <p>บัตรประเภทนี้ไม่เลือกรอบล่วงหน้า กรุณาติดต่อเจ้าหน้าที่หน้างานเพื่อเลือกรอบการแสดง</p>
+        <button id="copyTicket" type="button" class="secondary">คัดลอกรหัสสิทธิ์</button>
+      </section>
+
+      <section class="card lookup">
+        <div class="section-title"><h2>ตรวจสอบสถานะสิทธิ์</h2><span>ใช้รหัสสิทธิ์และรหัสนักศึกษา</span></div>
+        <div class="grid">
+          <div class="field"><label for="lookupTicket">Student Ticket ID</label><input id="lookupTicket" type="text" placeholder="เช่น PAC-STU-0001" autocomplete="off"></div>
+          <div class="field"><label for="lookupStudentId">รหัสนักศึกษา</label><input id="lookupStudentId" type="text" inputmode="numeric" placeholder="เช่น 6605810" autocomplete="off"></div>
+        </div>
+        <div class="form-actions"><button id="lookupButton" type="button" class="primary">ตรวจสอบสถานะ</button></div>
+        <div id="lookupResult" class="lookup-result hidden"></div>
+      </section>
+    </section>
+  </main>
+  <footer>ระบบสิทธิ์นักศึกษา PAC แยกจากระบบบัตรราคาปกติ · สำหรับการตรวจสอบ ติดต่อ <span id="footerSupport">เจ้าหน้าที่ PAC</span></footer>
+  <noscript><p class="error">กรุณาเปิดใช้งาน JavaScript เพื่อใช้ระบบนี้</p></noscript>
+
+  <?!= include('ClientBootstrap'); ?>
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      var config = null;
+      var submitting = false;
+      var requestId = StudentClient.newRequestId();
+      var allowedMime = ['image/jpeg', 'image/png', 'image/webp'];
+      var maxBytes = 5 * 1024 * 1024;
+
+      function serverCall(name) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        return new Promise(function (resolve, reject) {
+          var runner = google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);
+          runner[name].apply(runner, args);
+        });
+      }
+
+      function errorText(error) { return (error && error.message) ? error.message : String(error || 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง'); }
+      function showError(target, message) { target.textContent = message; target.classList.remove('hidden'); }
+      function clearError(target) { target.textContent = ''; target.classList.add('hidden'); }
+      function amountText(value) { return Number(value || 99).toLocaleString('th-TH') + ' บาท'; }
+
+      function renderConfig(data) {
+        config = data;
+        $('eventName').textContent = data.eventName;
+        $('eventDescription').textContent = data.eventDescription;
+        var idLength = Number(data.studentIdLength) || 7;
+        $('studentId').maxLength = idLength;
+        $('studentIdHint').innerHTML = 'สำหรับนักศึกษารหัสขึ้นต้น <strong>' + StudentClient.escapeHtml((data.eligiblePrefixes || ['66', '67', '68', '69']).join('–')) + '</strong> เท่านั้น';
+        var banner = StudentClient.saleBanner(data);
+        $('saleBanner').className = 'sale-banner ' + banner.tone;
+        $('saleTitle').textContent = banner.title;
+        $('saleBody').textContent = banner.body;
+        $('bankName').textContent = data.payment.bankName || 'เจ้าหน้าที่จะแจ้งให้ทราบ';
+        $('accountHolder').textContent = data.payment.accountHolder || '-';
+        $('accountNumber').textContent = data.payment.accountNumber || '-';
+        $('supportContact').textContent = data.payment.supportContact ? 'ติดต่อ: ' + data.payment.supportContact : '';
+        $('footerSupport').textContent = data.payment.supportContact || 'เจ้าหน้าที่ PAC';
+        if (data.payment.promptpayQrDataUrl) { $('qrImage').src = data.payment.promptpayQrDataUrl; $('qrBox').classList.remove('hidden'); }
+        var open = data.saleState === StudentClient.SALE_STATES.OPEN;
+        Array.prototype.forEach.call(document.querySelectorAll('#studentForm input, #studentForm button'), function (element) { element.disabled = !open; });
+        if (!open) $('submitButton').textContent = banner.title;
+      }
+
+      function validateFile(file, label) {
+        if (!file) throw new Error('กรุณาอัปโหลด' + label);
+        if (allowedMime.indexOf(file.type) < 0) throw new Error('รองรับเฉพาะไฟล์ JPEG, PNG หรือ WEBP เท่านั้น');
+        if (file.size <= 0 || file.size > maxBytes) throw new Error('ไฟล์ต้องมีขนาดไม่เกิน 5 MB');
+      }
+
+      function updateFileLabel(input, target, label) {
+        var file = input.files && input.files[0];
+        if (!file) { target.textContent = ''; return; }
+        try { validateFile(file, label); target.textContent = file.name + ' · ' + StudentClient.fileSizeLabel(file.size); }
+        catch (error) { target.textContent = errorText(error); input.value = ''; }
+      }
+
+      async function submit(event) {
+        event.preventDefault();
+        if (submitting) return;
+        clearError($('formError'));
+        if (!config || config.saleState !== StudentClient.SALE_STATES.OPEN) { showError($('formError'), StudentClient.saleBanner(config || { saleState: 'CLOSED_ENDED' }).title); return; }
+        var form = $('studentForm');
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        var studentId = $('studentId').value.trim().replace(/\s+/g, '');
+        var prefixes = config.eligiblePrefixes || ['66', '67', '68', '69'];
+        var expectedLength = Number(config.studentIdLength) || 7;
+        if (!new RegExp('^\\d{' + expectedLength + '}$').test(studentId) || !prefixes.some(function (prefix) { return studentId.indexOf(String(prefix)) === 0; })) { showError($('formError'), 'สิทธิ์นี้สำหรับนักศึกษารหัสขึ้นต้น ' + prefixes.join('–') + ' เท่านั้น กรุณาตรวจสอบรหัสนักศึกษา'); return; }
+        var rsu = $('rsuFile').files && $('rsuFile').files[0];
+        var slip = $('slipFile').files && $('slipFile').files[0];
+        try { validateFile(rsu, 'หลักฐานยืนยันสถานะนักศึกษา'); validateFile(slip, 'สลิปการชำระเงิน'); } catch (error) { showError($('formError'), errorText(error)); return; }
+        submitting = true;
+        $('submitButton').disabled = true;
+        $('submitButton').textContent = 'กำลังส่งข้อมูล…';
+        try {
+          var filePayloads = await Promise.all([StudentClient.readFile(rsu), StudentClient.readFile(slip)]);
+          var raw = await serverCall('submitStudentEntitlement', {
+            full_name: $('fullName').value,
+            email: $('email').value,
+            student_id: studentId,
+            generation: $('generation').value,
+            request_id: requestId,
+            rsu_connect: filePayloads[0],
+            payment_slip: filePayloads[1]
+          });
+          var result = typeof raw === 'string' ? JSON.parse(raw) : raw;
+          if (!result || result.ok !== true) throw new Error('ระบบไม่สามารถรับข้อมูลได้');
+          $('formCard').classList.add('hidden');
+          $('successCard').classList.remove('hidden');
+          $('successTicket').textContent = result.ticketId;
+          $('successStatus').textContent = result.statusLabel || 'รอตรวจสอบ';
+          $('successExplanation').textContent = result.explanation;
+          $('successCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (error) {
+          showError($('formError'), errorText(error));
+          $('submitButton').disabled = false;
+          $('submitButton').textContent = 'ส่งข้อมูลขอใช้สิทธิ์ 99 บาท';
+          submitting = false;
+        }
+      }
+
+      async function lookup() {
+        var resultBox = $('lookupResult');
+        resultBox.classList.add('hidden');
+        $('lookupButton').disabled = true;
+        try {
+          var raw = await serverCall('lookupStudentEntitlementJson', { student_ticket_code: $('lookupTicket').value, student_id: $('lookupStudentId').value });
+          var response = typeof raw === 'string' ? JSON.parse(raw) : raw;
+          if (!response.ok) { showError(resultBox, response.message || 'ไม่พบข้อมูล'); return; }
+          var r = response.result;
+          var note = r.rejectionNote ? '<dt>หมายเหตุ</dt><dd>' + StudentClient.escapeHtml(r.rejectionNote) + '</dd>' : '';
+          var performance = r.assignedPerformance ? '<dt>รอบที่ใช้สิทธิ์</dt><dd>' + StudentClient.escapeHtml(r.assignedPerformance) + '</dd>' : '';
+          resultBox.innerHTML = '<dl><dt>รหัสสิทธิ์</dt><dd>' + StudentClient.escapeHtml(r.ticketId) + '</dd><dt>ชื่อ</dt><dd>' + StudentClient.escapeHtml(r.name) + '</dd><dt>ยอดชำระ</dt><dd>' + amountText(r.amount) + '</dd><dt>สถานะ</dt><dd><span class="status-pill">' + StudentClient.escapeHtml(r.statusLabel) + '</span></dd><dt>การใช้สิทธิ์</dt><dd>' + (r.used ? 'ใช้สิทธิ์แล้ว' : 'ยังไม่ได้ใช้สิทธิ์') + '</dd>' + performance + note + '</dl>';
+          resultBox.classList.remove('hidden');
+        } catch (error) { showError(resultBox, errorText(error)); }
+        finally { $('lookupButton').disabled = false; }
+      }
+
+      function copyText(value, button, doneLabel) {
+        if (!value || value === '-') return;
+        var done = function () { var original = button.textContent; button.textContent = doneLabel; setTimeout(function () { button.textContent = original; }, 1600); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(value).then(done).catch(function () {});
+        else { var area = document.createElement('textarea'); area.value = value; document.body.appendChild(area); area.select(); try { document.execCommand('copy'); done(); } catch (ignored) {} area.remove(); }
+      }
+
+      $('studentForm').addEventListener('submit', submit);
+      $('rsuFile').addEventListener('change', function () { updateFileLabel(this, $('rsuFileName'), 'หลักฐานยืนยันสถานะนักศึกษา'); });
+      $('slipFile').addEventListener('change', function () { updateFileLabel(this, $('slipFileName'), 'สลิปการชำระเงิน'); });
+      $('copyAccount').addEventListener('click', function () { copyText($('accountNumber').textContent, this, 'คัดลอกแล้ว'); });
+      $('copyTicket').addEventListener('click', function () { copyText($('successTicket').textContent, this, 'คัดลอกแล้ว'); });
+      $('lookupButton').addEventListener('click', lookup);
+
+      serverCall('getPublicBootstrapJson').then(function (raw) {
+        try { renderConfig(StudentClient.parseBootstrap(raw)); $('bootLoading').classList.add('hidden'); $('app').classList.remove('hidden'); }
+        catch (error) { throw error; }
+      }).catch(function (error) { $('bootLoading').classList.add('hidden'); showError($('bootError'), errorText(error)); });
+    }());
+  </script>
+</body>
+</html>
