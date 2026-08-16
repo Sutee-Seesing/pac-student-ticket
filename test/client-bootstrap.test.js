@@ -78,7 +78,7 @@ test('customer page has no quantity selector or performance-selection control', 
 
 test('customer lookup uses one Student-ID-or-phone field only', () => {
   assert.match(index, /รหัสนักศึกษาหรือเบอร์โทรศัพท์/);
-  assert.match(index, /เช่น 6605810 หรือ 0642790662/);
+  assert.match(index, /เช่น 6612345 หรือ 0612345678/);
   assert.doesNotMatch(index, /lookupTicket|lookupStudentId/);
 });
 

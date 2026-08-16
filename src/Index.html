@@ -150,8 +150,8 @@
           <div class="grid">
             <div class="field full"><label for="fullName">ชื่อ-นามสกุล</label><input id="fullName" name="full_name" type="text" maxlength="120" autocomplete="name" required placeholder="กรอกชื่อและนามสกุล"></div>
             <div class="field"><label for="email">อีเมล</label><input id="email" name="email" type="email" maxlength="160" autocomplete="email" required placeholder="name@example.com"></div>
-            <div class="field"><label for="phone">เบอร์โทรศัพท์</label><input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="15" autocomplete="tel" required placeholder="เช่น 0642790662"><p class="hint">รับรูปแบบ 0642790662, 064-279-0662 หรือ +66 64 279 0662</p></div>
-            <div class="field"><label for="studentId">รหัสนักศึกษา</label><input id="studentId" name="student_id" type="text" inputmode="numeric" maxlength="7" autocomplete="off" required placeholder="เช่น 6605810"><p id="studentIdHint" class="hint">สำหรับนักศึกษารหัสขึ้นต้น <strong>66–69</strong> เท่านั้น</p></div>
+            <div class="field"><label for="phone">เบอร์โทรศัพท์</label><input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="15" autocomplete="tel" required placeholder="เช่น 0612345678"><p class="hint">รับรูปแบบ 0612345678, 061-234-5678 หรือ +66 61 234 5678</p></div>
+            <div class="field"><label for="studentId">รหัสนักศึกษา</label><input id="studentId" name="student_id" type="text" inputmode="numeric" maxlength="7" autocomplete="off" required placeholder="เช่น 6612345"><p id="studentIdHint" class="hint">สำหรับนักศึกษารหัสขึ้นต้น <strong>66–69</strong> เท่านั้น</p></div>
             <div class="field"><label for="generation">รุ่น</label><input id="generation" name="generation" type="text" inputmode="numeric" pattern="[0-9]{1,2}" required placeholder="เช่น 19"><p class="hint">กรอกตัวเลขตั้งแต่ 1–99</p></div>
           </div>
 
@@ -201,7 +201,7 @@
       <section class="card lookup">
         <div class="section-title"><h2>ตรวจสอบสถานะสิทธิ์</h2><span>ใช้รหัสนักศึกษาหรือเบอร์โทรศัพท์</span></div>
         <div class="grid">
-          <div class="field full"><label for="lookupInput">รหัสนักศึกษาหรือเบอร์โทรศัพท์</label><input id="lookupInput" type="text" inputmode="numeric" placeholder="เช่น 6605810 หรือ 0642790662" autocomplete="off"></div>
+          <div class="field full"><label for="lookupInput">รหัสนักศึกษาหรือเบอร์โทรศัพท์</label><input id="lookupInput" type="text" inputmode="numeric" placeholder="เช่น 6612345 หรือ 0612345678" autocomplete="off"></div>
         </div>
         <div class="form-actions"><button id="lookupButton" type="button" class="primary">ตรวจสอบสถานะ</button></div>
         <div id="lookupResult" class="lookup-result hidden"></div>
