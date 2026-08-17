@@ -12,6 +12,7 @@ vm.runInNewContext(clientScript, context);
 const Client = context.StudentClient;
 const index = fs.readFileSync(path.join(root, 'src', 'Index.html'), 'utf8');
 const code = fs.readFileSync(path.join(root, 'src', 'Code.gs'), 'utf8');
+const domain = fs.readFileSync(path.join(root, 'src', 'Domain.js'), 'utf8');
 const admin = fs.readFileSync(path.join(root, 'src', 'Admin.html'), 'utf8');
 
 test('client bootstrap accepts a valid server response and fixed amount', () => {
@@ -92,7 +93,16 @@ test('server source contains independent authorization, LockService, and private
   assert.match(code, /setNumberFormat\('@'\)/);
   assert.match(code, /lookupRecords/);
   assert.match(code, /publicLookupRecord/);
+  assert.match(domain, /maskThaiPhone/);
+  assert.match(domain, /maskedPhone/);
   assert.match(code, /'เบอร์โทรศัพท์'/);
+});
+
+test('customer status card renders venue verification fields and used performance label', () => {
+  assert.match(index, /r\.studentId/);
+  assert.match(index, /r\.generation/);
+  assert.match(index, /r\.maskedPhone/);
+  assert.match(index, /รอบที่เข้าชม/);
 });
 
 test('server source never falls back to an active spreadsheet', () => {

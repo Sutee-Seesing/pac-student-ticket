@@ -240,15 +240,27 @@ test('public lookup response is minimal and never exposes personal or internal m
 });
 
 test('approved public lookup includes screenshot guidance only for approved status', () => {
-  const approved = Domain.publicLookupRecord({ status: 'APPROVED', student_ticket_code: 'PAC-STU-0002', amount: 99 });
+  const approved = Domain.publicLookupRecord({
+    status: 'APPROVED', student_ticket_code: 'PAC-STU-0002', student_id: '6612345', generation: '19', phone: '0612345678', amount: 99
+  });
   const waiting = Domain.publicLookupRecord({ status: 'WAITING_REVIEW' });
   const rejected = Domain.publicLookupRecord({ status: 'REJECTED' });
   const used = Domain.publicLookupRecord({ status: 'USED', assigned_performance: '21 Aug 2026 · 17:00' });
+  assert.equal(approved.studentId, '6612345');
+  assert.equal(approved.generation, '19');
+  assert.equal(approved.maskedPhone, '061-***-5678');
+  assert.equal(JSON.stringify(approved).includes('0612345678'), false);
   assert.equal(approved.message, Domain.APPROVED_LOOKUP_MESSAGE);
-  assert.equal(waiting.message, undefined);
+  assert.equal(waiting.message, 'อยู่ระหว่างการตรวจสอบข้อมูลและสลิปการชำระเงิน');
   assert.notEqual(rejected.message, Domain.APPROVED_LOOKUP_MESSAGE);
   assert.equal(used.message, undefined);
+  assert.equal(used.assignedPerformance, '21 Aug 2026 · 17:00');
   assert.equal(JSON.stringify(used).includes('เลือกรอบ'), false);
+});
+
+test('public phone masking fails safely for invalid input', () => {
+  assert.equal(Domain.maskThaiPhone('not-a-phone'), '');
+  assert.equal(Domain.publicLookupRecord({ status: 'APPROVED', phone: 'not-a-phone' }).maskedPhone, '');
 });
 
 test('venue performance options are limited to the four configured values', () => {

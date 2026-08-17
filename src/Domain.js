@@ -35,8 +35,9 @@ var StudentDomain = (function () {
     '22 Aug 2026 · 17:00',
     '22 Aug 2026 · 19:00'
   ];
-  var GENERIC_REJECTED_MESSAGE = 'รายการไม่ผ่านการตรวจสอบ กรุณาติดต่อเจ้าหน้าที่ PAC หากต้องการข้อมูลเพิ่มเติม';
+  var GENERIC_REJECTED_MESSAGE = 'รายการไม่ผ่านการตรวจสอบ กรุณาติดต่อเจ้าหน้าที่หากต้องการข้อมูลเพิ่มเติม';
   var APPROVED_LOOKUP_MESSAGE = 'แนะนำให้แคปหน้าจอนี้เก็บไว้ และนำมาแสดงต่อเจ้าหน้าที่หน้างาน เพื่อเลือกรอบที่ต้องการเข้าชม';
+  var WAITING_LOOKUP_MESSAGE = 'อยู่ระหว่างการตรวจสอบข้อมูลและสลิปการชำระเงิน';
 
   function text(value) {
     return String(value == null ? '' : value).trim();
@@ -102,6 +103,11 @@ var StudentDomain = (function () {
 
   function isValidThaiPhone(value) {
     return Boolean(normalizeThaiPhone(value));
+  }
+
+  function maskThaiPhone(value) {
+    var phone = normalizeThaiPhone(value);
+    return phone ? phone.slice(0, 3) + '-***-' + phone.slice(-4) : '';
   }
 
   function normalizeSubmission(payload) {
@@ -295,6 +301,9 @@ var StudentDomain = (function () {
     var status = text(row.status);
     var result = {
       ticketId: text(row.student_ticket_code),
+      studentId: text(row.student_id),
+      generation: text(row.generation),
+      maskedPhone: maskThaiPhone(row.phone),
       amount: Number(row.amount) || PRICE,
       status: status,
       statusLabel: statusLabel(status),
@@ -302,6 +311,7 @@ var StudentDomain = (function () {
       assignedPerformance: status === STATUSES.USED ? text(row.assigned_performance) : ''
     };
     if (status === STATUSES.APPROVED) result.message = APPROVED_LOOKUP_MESSAGE;
+    if (status === STATUSES.WAITING_REVIEW) result.message = WAITING_LOOKUP_MESSAGE;
     if (status === STATUSES.REJECTED) result.message = GENERIC_REJECTED_MESSAGE;
     return result;
   }
@@ -352,6 +362,7 @@ var StudentDomain = (function () {
     isReasonableEmail: isReasonableEmail,
     normalizeThaiPhone: normalizeThaiPhone,
     isValidThaiPhone: isValidThaiPhone,
+    maskThaiPhone: maskThaiPhone,
     normalizeSubmission: normalizeSubmission,
     validateCustomerInput: validateCustomerInput,
     canSubmitForStudent: canSubmitForStudent,
