@@ -223,7 +223,7 @@ test('phone duplicates do not block a different Student ID purchase', () => {
   assert.equal(result.allowed, true);
 });
 
-test('public lookup response is minimal and never exposes personal or internal metadata', () => {
+test('public lookup response exposes only normalized phone and no personal or internal metadata', () => {
   const response = Domain.publicLookupRecord({
     student_ticket_code: 'PAC-STU-0001', full_name: 'A Student', email: 'a@example.com', phone: '0642790662', amount: 99,
     status: 'REJECTED', admin_note: 'private reason', reviewer: 'staff', internal_id: 'uuid', rsu_connect_file_id: 'drive-1', payment_slip_file_id: 'drive-2'
@@ -233,7 +233,7 @@ test('public lookup response is minimal and never exposes personal or internal m
   assert.equal('name' in response, false);
   assert.equal('full_name' in response, false);
   assert.equal('email' in response, false);
-  assert.equal('phone' in response, false);
+  assert.equal(response.phone, '0642790662');
   assert.equal(JSON.stringify(response).includes('drive-1'), false);
   assert.equal(JSON.stringify(response).includes('private reason'), false);
   assert.equal(JSON.stringify(response).includes('staff'), false);
@@ -248,8 +248,8 @@ test('approved public lookup includes screenshot guidance only for approved stat
   const used = Domain.publicLookupRecord({ status: 'USED', assigned_performance: '21 Aug 2026 · 17:00' });
   assert.equal(approved.studentId, '6612345');
   assert.equal(approved.generation, '19');
-  assert.equal(approved.maskedPhone, '061-***-5678');
-  assert.equal(JSON.stringify(approved).includes('0612345678'), false);
+  assert.equal(approved.phone, '0612345678');
+  assert.equal('maskedPhone' in approved, false);
   assert.equal(approved.message, Domain.APPROVED_LOOKUP_MESSAGE);
   assert.equal(waiting.message, 'อยู่ระหว่างการตรวจสอบข้อมูลและสลิปการชำระเงิน');
   assert.notEqual(rejected.message, Domain.APPROVED_LOOKUP_MESSAGE);
@@ -258,9 +258,9 @@ test('approved public lookup includes screenshot guidance only for approved stat
   assert.equal(JSON.stringify(used).includes('เลือกรอบ'), false);
 });
 
-test('public phone masking fails safely for invalid input', () => {
-  assert.equal(Domain.maskThaiPhone('not-a-phone'), '');
-  assert.equal(Domain.publicLookupRecord({ status: 'APPROVED', phone: 'not-a-phone' }).maskedPhone, '');
+test('public phone display normalizes valid input and hides invalid input safely', () => {
+  assert.equal(Domain.publicLookupRecord({ status: 'APPROVED', phone: '064-279-0662' }).phone, '0642790662');
+  assert.equal(Domain.publicLookupRecord({ status: 'APPROVED', phone: 'not-a-phone' }).phone, '');
 });
 
 test('venue performance options are limited to the four configured values', () => {

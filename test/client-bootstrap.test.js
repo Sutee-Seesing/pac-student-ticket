@@ -93,15 +93,14 @@ test('server source contains independent authorization, LockService, and private
   assert.match(code, /setNumberFormat\('@'\)/);
   assert.match(code, /lookupRecords/);
   assert.match(code, /publicLookupRecord/);
-  assert.match(domain, /maskThaiPhone/);
-  assert.match(domain, /maskedPhone/);
+  assert.match(domain, /phone: normalizeThaiPhone/);
   assert.match(code, /'เบอร์โทรศัพท์'/);
 });
 
 test('customer status card renders venue verification fields and used performance label', () => {
   assert.match(index, /r\.studentId/);
   assert.match(index, /r\.generation/);
-  assert.match(index, /r\.maskedPhone/);
+  assert.match(index, /r\.phone/);
   assert.match(index, /รอบที่เข้าชม/);
 });
 

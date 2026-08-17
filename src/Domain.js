@@ -105,11 +105,6 @@ var StudentDomain = (function () {
     return Boolean(normalizeThaiPhone(value));
   }
 
-  function maskThaiPhone(value) {
-    var phone = normalizeThaiPhone(value);
-    return phone ? phone.slice(0, 3) + '-***-' + phone.slice(-4) : '';
-  }
-
   function normalizeSubmission(payload) {
     var input = payload || {};
     return {
@@ -303,7 +298,7 @@ var StudentDomain = (function () {
       ticketId: text(row.student_ticket_code),
       studentId: text(row.student_id),
       generation: text(row.generation),
-      maskedPhone: maskThaiPhone(row.phone),
+      phone: normalizeThaiPhone(row.phone) || '',
       amount: Number(row.amount) || PRICE,
       status: status,
       statusLabel: statusLabel(status),
@@ -362,7 +357,6 @@ var StudentDomain = (function () {
     isReasonableEmail: isReasonableEmail,
     normalizeThaiPhone: normalizeThaiPhone,
     isValidThaiPhone: isValidThaiPhone,
-    maskThaiPhone: maskThaiPhone,
     normalizeSubmission: normalizeSubmission,
     validateCustomerInput: validateCustomerInput,
     canSubmitForStudent: canSubmitForStudent,
