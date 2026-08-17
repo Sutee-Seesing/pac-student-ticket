@@ -239,6 +239,18 @@ test('public lookup response is minimal and never exposes personal or internal m
   assert.equal(JSON.stringify(response).includes('staff'), false);
 });
 
+test('approved public lookup includes screenshot guidance only for approved status', () => {
+  const approved = Domain.publicLookupRecord({ status: 'APPROVED', student_ticket_code: 'PAC-STU-0002', amount: 99 });
+  const waiting = Domain.publicLookupRecord({ status: 'WAITING_REVIEW' });
+  const rejected = Domain.publicLookupRecord({ status: 'REJECTED' });
+  const used = Domain.publicLookupRecord({ status: 'USED', assigned_performance: '21 Aug 2026 · 17:00' });
+  assert.equal(approved.message, Domain.APPROVED_LOOKUP_MESSAGE);
+  assert.equal(waiting.message, undefined);
+  assert.notEqual(rejected.message, Domain.APPROVED_LOOKUP_MESSAGE);
+  assert.equal(used.message, undefined);
+  assert.equal(JSON.stringify(used).includes('เลือกรอบ'), false);
+});
+
 test('venue performance options are limited to the four configured values', () => {
   const options = Domain.DEFAULT_PERFORMANCES;
   assert.equal(options.length, 4);

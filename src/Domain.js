@@ -36,6 +36,7 @@ var StudentDomain = (function () {
     '22 Aug 2026 · 19:00'
   ];
   var GENERIC_REJECTED_MESSAGE = 'รายการไม่ผ่านการตรวจสอบ กรุณาติดต่อเจ้าหน้าที่ PAC หากต้องการข้อมูลเพิ่มเติม';
+  var APPROVED_LOOKUP_MESSAGE = 'แนะนำให้แคปหน้าจอนี้เก็บไว้ และนำมาแสดงต่อเจ้าหน้าที่หน้างาน เพื่อเลือกรอบที่ต้องการเข้าชม';
 
   function text(value) {
     return String(value == null ? '' : value).trim();
@@ -300,6 +301,7 @@ var StudentDomain = (function () {
       used: status === STATUSES.USED || Boolean(row.used_at),
       assignedPerformance: status === STATUSES.USED ? text(row.assigned_performance) : ''
     };
+    if (status === STATUSES.APPROVED) result.message = APPROVED_LOOKUP_MESSAGE;
     if (status === STATUSES.REJECTED) result.message = GENERIC_REJECTED_MESSAGE;
     return result;
   }
@@ -335,6 +337,7 @@ var StudentDomain = (function () {
     GENERATION_MIN: GENERATION_MIN,
     GENERATION_MAX: GENERATION_MAX,
     GENERIC_REJECTED_MESSAGE: GENERIC_REJECTED_MESSAGE,
+    APPROVED_LOOKUP_MESSAGE: APPROVED_LOOKUP_MESSAGE,
     ALLOWED_MIME: ALLOWED_MIME.slice(),
     STATUSES: STATUSES,
     SALE_STATES: SALE_STATES,
